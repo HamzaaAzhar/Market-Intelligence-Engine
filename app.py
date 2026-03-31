@@ -576,15 +576,15 @@ def export_json():
     safe=re.sub(r"[^\w]","_",key or "all")
     return send_file(mem,mimetype="application/json",as_attachment=True,download_name=f"sis_{safe}.json")
 
-if __name__=="__main__":
-    print("\n"+"═"*50)
+if __name__ == "__main__":
+    import os
+
+    port = int(os.environ.get("PORT", 5000))
+
+    print("══════════════════════════════════════════════════")
     print("  Scraper Intelligence System")
-    print("  Open: http://127.0.0.1:5000")
+    print(f"  Open: http://0.0.0.0:{port}")
     print("  Stop: Ctrl+C")
-    print("═"*50+"\n")
-    def _auto_open():
-        time.sleep(2.5)
-        try: webbrowser.open("http://127.0.0.1:5000")
-        except: pass
-    threading.Thread(target=_auto_open,daemon=True).start()
-    app.run(debug=False,port=5000,host="127.0.0.1",threaded=True)
+    print("══════════════════════════════════════════════════")
+
+    app.run(host="0.0.0.0", port=port, debug=False)
