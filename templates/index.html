@@ -1,0 +1,2332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Scraper Intelligence System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Enterprise neutral palette */
+  --bg:     #080b12;
+  --s1:     #0c0f18;
+  --s2:     #0f1220;
+  --s3:     #131726;
+  --b0:     #151929;
+  --b1:     #1c2035;
+  --b2:     #222640;
+  --b3:     #2a2f4a;
+  /* Brand */
+  --blue:   #1a56db;
+  --blue-l: #3b82f6;
+  --blue-d: #1241a8;
+  --blue-dim:rgba(26,86,219,.1);
+  /* Data colors */
+  --cyan:   #0ea5e9;
+  --teal:   #14b8a6;
+  --grn:    #22c55e;
+  --ylw:    #eab308;
+  --ora:    #f97316;
+  --red:    #ef4444;
+  --pur:    #8b5cf6;
+  /* Text */
+  --t1:     #f1f5f9;
+  --t2:     #94a3b8;
+  --t3:     #475569;
+  --t4:     #1e2640;
+  /* Mono */
+  --mono:  'IBM Plex Mono',monospace;
+  --sans:  'IBM Plex Sans',sans-serif;
+  --rad:   3px;
+}
+html{scroll-behavior:smooth;font-size:14px}
+body{background:var(--bg);color:var(--t1);font-family:var(--sans);line-height:1.5;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--blue-l)}
+::selection{background:var(--blue-dim);color:var(--t1)}
+
+/* ══════════════════════════════════════════════════
+   SCREEN MANAGER
+══════════════════════════════════════════════════ */
+.screen{display:none!important}
+.screen.active{display:block!important}
+.screen.flex-screen{display:none!important}
+.screen.flex-screen.active{display:flex!important}
+
+/* ══════════════════════════════════════════════════
+   WELCOME SCREEN
+══════════════════════════════════════════════════ */
+#screen-welcome{
+  min-height:100vh;
+  background:var(--bg);
+  flex-direction:column;
+}
+.wl-header{
+  border-bottom:1px solid var(--b1);
+  padding:18px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wl-logo{display:flex;align-items:center;gap:12px}
+.wl-logo-mark{
+  width:32px;height:32px;
+  background:var(--blue);
+  display:grid;place-items:center;
+  font-size:.75rem;font-family:var(--mono);color:#fff;font-weight:500;
+}
+.wl-logo-name{font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+.wl-logo-sub{font-size:.7rem;color:var(--t3);font-family:var(--mono);letter-spacing:.06em;margin-top:1px}
+.wl-header-right{display:flex;align-items:center;gap:8px}
+.wl-hero{
+  flex:1;
+  display:grid;grid-template-columns:1fr 480px;
+  gap:0;
+  max-width:1280px;margin:0 auto;padding:60px 48px 40px;
+  width:100%;
+}
+.wl-left{padding-right:60px;border-right:1px solid var(--b1)}
+.wl-eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--blue-l);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.wl-eyebrow::before{content:'';width:20px;height:1px;background:var(--blue)}
+.wl-h1{font-size:2.6rem;font-weight:600;line-height:1.15;letter-spacing:-.03em;margin-bottom:18px;color:var(--t1)}
+.wl-h1 span{color:var(--blue-l)}
+.wl-desc{font-size:.9rem;color:var(--t2);line-height:1.8;max-width:520px;margin-bottom:32px}
+/* Access points */
+.access-list{display:flex;flex-direction:column;gap:8px}
+.access-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border:1px solid var(--b1);background:var(--s2);
+}
+.access-left{display:flex;align-items:center;gap:10px}
+.access-icon{width:28px;height:28px;display:grid;place-items:center;font-size:.85rem;background:var(--b0)}
+.access-name{font-size:.82rem;font-weight:500}
+.access-url{font-family:var(--mono);font-size:.65rem;color:var(--t3)}
+.live-badge{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;
+  color:var(--grn);border:1px solid rgba(34,197,94,.25);
+  padding:2px 8px;background:rgba(34,197,94,.06);
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--grn);animation:blink 1.5s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* Query panel */
+.wl-right{padding-left:48px}
+.qpanel-title{font-size:.8rem;font-weight:600;margin-bottom:4px}
+.qpanel-sub{font-size:.75rem;color:var(--t3);margin-bottom:20px}
+/* tag input */
+.tag-inp-wrap{
+  border:1px solid var(--b2);background:var(--s1);
+  padding:6px 8px;display:flex;flex-wrap:wrap;gap:5px;
+  cursor:text;min-height:40px;transition:border-color .2s;margin-bottom:10px;
+}
+.tag-inp-wrap:focus-within{border-color:var(--blue-l)}
+.qtag{display:flex;align-items:center;gap:4px;background:var(--blue-dim);border:1px solid rgba(59,130,246,.25);color:var(--blue-l);padding:2px 8px;font-family:var(--mono);font-size:.7rem}
+.qtag-x{background:none;border:none;color:var(--blue-l);cursor:pointer;font-size:.8rem;padding:0;line-height:1}
+.tag-inp-wrap input{border:none;background:transparent;color:var(--t1);outline:none;font-family:var(--mono);font-size:.75rem;min-width:100px;flex:1;padding:2px 0}
+.qpanel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.fld label{display:block;font-family:var(--mono);font-size:.62rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+input,select,textarea{
+  width:100%;background:var(--s1);border:1px solid var(--b2);color:var(--t1);
+  padding:7px 10px;font-family:var(--mono);font-size:.78rem;outline:none;
+  transition:border-color .2s;border-radius:var(--rad);
+}
+input:focus,select:focus{border-color:var(--blue-l)}
+select option{background:var(--s1)}
+.filters-acc{margin-bottom:10px}
+.filters-acc-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:var(--mono);font-size:.65rem;color:var(--t3);cursor:pointer;
+  padding:6px 10px;border:1px solid var(--b1);background:var(--s1);
+}
+.filters-acc-toggle:hover{color:var(--t2)}
+.filters-acc-body{display:none;padding:10px;border:1px solid var(--b1);border-top:none;background:var(--s2)}
+.filters-acc-body.open{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-run{
+  width:100%;padding:12px;background:var(--blue);color:#fff;
+  font-family:var(--mono);font-size:.8rem;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;border:none;cursor:pointer;transition:background .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-run:hover:not(:disabled){background:var(--blue-d)}
+.btn-run:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{
+  width:100%;padding:8px;background:transparent;color:var(--t2);
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;
+  border:1px solid var(--b2);cursor:pointer;transition:all .15s;margin-top:6px;
+}
+.btn-secondary:hover{border-color:var(--blue-l);color:var(--blue-l)}
+.wl-footer{padding:16px 48px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.wl-footer-l{font-family:var(--mono);font-size:.65rem;color:var(--t3)}
+
+/* ══════════════════════════════════════════════════
+   LOADING SCREEN
+══════════════════════════════════════════════════ */
+#screen-loading{
+  min-height:100vh;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  background:var(--bg);
+  padding:40px;
+}
+.ld-inner{width:100%;max-width:760px}
+.ld-header{margin-bottom:32px}
+.ld-title{font-size:1.1rem;font-weight:600;margin-bottom:4px}
+.ld-query{font-family:var(--mono);font-size:.8rem;color:var(--blue-l)}
+.ld-bar-wrap{height:3px;background:var(--b1);margin-bottom:28px;overflow:hidden}
+.ld-bar-fill{height:100%;background:var(--blue);transition:width .4s ease;min-width:2px}
+.ld-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ld-stat{background:var(--s2);border:1px solid var(--b1);padding:12px 14px}
+.ld-stat-l{font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.ld-stat-v{font-family:var(--mono);font-size:1.5rem;color:var(--cyan)}
+.ld-log{border:1px solid var(--b1);background:var(--s1);height:260px;overflow-y:auto;font-family:var(--mono);font-size:.72rem}
+.ld-log-row{
+  padding:5px 12px;border-bottom:1px solid var(--b0);display:flex;gap:10px;align-items:baseline;
+}
+.ld-log-time{color:var(--t3);flex-shrink:0;min-width:52px}
+.ld-log-msg{color:var(--t2)}
+.ld-log-row.info .ld-log-msg{color:var(--t2)}
+.ld-log-row.ok   .ld-log-msg{color:var(--grn)}
+.ld-log-row.warn .ld-log-msg{color:var(--ylw)}
+.ld-log-row.err  .ld-log-msg{color:var(--red)}
+.ld-sites{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ld-site{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--t3);padding:4px 10px;border:1px solid var(--b1)}
+.ld-site.active{border-color:var(--blue-l);color:var(--blue-l)}
+.ld-site.done{border-color:var(--grn);color:var(--grn)}
+.ld-dot{width:6px;height:6px;border-radius:50%;background:var(--t3);flex-shrink:0}
+.ld-site.active .ld-dot{background:var(--blue-l);animation:blink .8s infinite}
+.ld-site.done   .ld-dot{background:var(--grn)}
+
+/* ══════════════════════════════════════════════════
+   MAIN DASHBOARD SCREEN
+══════════════════════════════════════════════════ */
+#screen-main{min-height:100vh;display:none;flex-direction:column}
+#screen-main.active{display:flex!important}
+
+/* Header */
+.hdr{
+  position:sticky;top:0;z-index:200;
+  background:rgba(8,11,18,.97);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--b1);
+  height:52px;display:flex;align-items:center;padding:0 20px;gap:0;
+  flex-shrink:0;
+}
+.hdr-logo{display:flex;align-items:center;gap:10px;padding-right:20px;border-right:1px solid var(--b1);margin-right:20px;flex-shrink:0}
+.hdr-logo-mark{width:26px;height:26px;background:var(--blue);display:grid;place-items:center;font-family:var(--mono);font-size:.6rem;color:#fff;font-weight:500}
+.hdr-logo-name{font-size:.82rem;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+
+/* Tickers */
+.ticker-strip{
+  flex:1;overflow:hidden;height:100%;display:flex;align-items:center;
+  gap:0;position:relative;
+}
+.ticker-strip::before,.ticker-strip::after{
+  content:'';position:absolute;top:0;bottom:0;width:24px;z-index:2;
+}
+.ticker-strip::before{left:0;background:linear-gradient(to right,rgba(8,11,18,.97),transparent)}
+.ticker-strip::after{right:0;background:linear-gradient(to left,rgba(8,11,18,.97),transparent)}
+.ticker-track{
+  display:flex;gap:0;align-items:stretch;
+  animation:ticker 60s linear infinite;
+  will-change:transform;
+}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick{
+  display:flex;align-items:center;gap:0;
+  padding:0 14px;height:52px;cursor:pointer;
+  border-right:1px solid var(--b1);transition:background .15s;
+  flex-shrink:0;min-width:200px;
+}
+.tick:hover{background:var(--s2)}
+.tick-type{font-family:var(--mono);font-size:.55rem;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;margin-bottom:2px}
+.tick-val{font-family:var(--mono);font-size:.78rem;font-weight:500;white-space:nowrap}
+.tick-val.up{color:var(--grn)}
+.tick-val.dn{color:var(--red)}
+.tick-val.neu{color:var(--cyan)}
+.tick-val.warn{color:var(--ylw)}
+.tick-delta{font-family:var(--mono);font-size:.6rem;margin-left:5px}
+.tick-delta.up{color:var(--grn)}
+.tick-delta.dn{color:var(--red)}
+
+/* Header right */
+.hdr-right{display:flex;align-items:center;gap:6px;padding-left:16px;border-left:1px solid var(--b1);flex-shrink:0}
+.hbtn{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--b1);font-family:var(--mono);font-size:.64rem;color:var(--t3);cursor:pointer;background:transparent;transition:all .15s;white-space:nowrap}
+.hbtn:hover{border-color:var(--blue-l);color:var(--blue-l)}
+.hbtn.on{border-color:var(--grn);color:var(--grn)}
+.hbtn-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* Activity log panel (dropdown) */
+.act-panel{
+  position:fixed;top:52px;right:0;width:340px;height:calc(100vh - 52px);
+  background:var(--s1);border-left:1px solid var(--b1);z-index:150;
+  display:flex;flex-direction:column;transform:translateX(100%);
+  transition:transform .25s ease;
+}
+.act-panel.open{transform:translateX(0)}
+.act-panel-hd{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.act-panel-title{font-size:.8rem;font-weight:600}
+.act-panel-x{background:none;border:none;color:var(--t3);cursor:pointer;font-size:.9rem}
+.act-panel-x:hover{color:var(--t1)}
+.act-panel-body{flex:1;overflow-y:auto;font-family:var(--mono);font-size:.7rem}
+.act-log-row{padding:8px 14px;border-bottom:1px solid var(--b0);display:flex;gap:8px}
+.act-log-t{color:var(--t3);flex-shrink:0}
+.act-log-m{color:var(--t2)}
+.act-log-row.ok .act-log-m{color:var(--grn)}
+.act-log-row.warn .act-log-m{color:var(--ylw)}
+.act-log-row.err .act-log-m{color:var(--red)}
+
+/* Alerts panel */
+.alerts-panel{
+  position:fixed;top:52px;right:0;width:380px;max-height:calc(100vh - 52px);
+  background:var(--s1);border-left:1px solid var(--b1);z-index:150;
+  display:flex;flex-direction:column;transform:translateX(100%);
+  transition:transform .25s ease;overflow-y:auto;
+}
+.alerts-panel.open{transform:translateX(0)}
+.alert-card{padding:12px 16px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .15s}
+.alert-card:hover{background:var(--s2)}
+.alert-type{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.alert-type.discount{color:var(--grn)}
+.alert-type.arbitrage{color:var(--ylw)}
+.alert-type.gap{color:var(--pur)}
+.alert-title{font-size:.8rem;font-weight:500;margin-bottom:2px}
+.alert-body{font-size:.75rem;color:var(--t2)}
+.alert-ts{font-family:var(--mono);font-size:.6rem;color:var(--t3);margin-top:4px}
+
+/* Alert expanded detail */
+.alert-detail{display:none;padding:8px 0 0;border-top:1px solid var(--b1);margin-top:8px}
+.alert-detail.open{display:block}
+.alert-detail-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.7rem;padding:3px 0;color:var(--t2)}
+.alert-detail-row span:last-child{color:var(--t1)}
+
+/* ── Main layout ── */
+.main-body{flex:1;display:grid;grid-template-columns:240px 1fr;min-height:0}
+
+/* Sidebar */
+.sidebar{
+  border-right:1px solid var(--b1);background:var(--s1);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.sb-section{border-bottom:1px solid var(--b1);padding:14px}
+.sb-title{font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.sb-btn{
+  width:100%;padding:8px 10px;background:var(--blue);color:#fff;
+  font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.05em;
+  text-transform:uppercase;border:none;cursor:pointer;transition:background .15s;
+  display:flex;align-items:center;gap:6px;justify-content:center;
+}
+.sb-btn:hover:not(:disabled){background:var(--blue-d)}
+.sb-btn:disabled{opacity:.45;cursor:not-allowed}
+.sb-btn-line{background:transparent;border:1px solid var(--b2);color:var(--t3);margin-top:5px}
+.sb-btn-line:hover{border-color:var(--blue-l);color:var(--blue-l)}
+.sb-btn-red{background:transparent;border:1px solid var(--b1);color:var(--t3);margin-top:5px}
+.sb-btn-red:hover{border-color:var(--red);color:var(--red)}
+
+/* DS list */
+.ds-item{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid var(--b1);margin-bottom:3px;cursor:pointer;transition:all .15s}
+.ds-item:hover,.ds-item.sel{border-color:var(--blue-l);background:var(--blue-dim)}
+.ds-name{font-family:var(--mono);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.ds-meta{font-family:var(--mono);font-size:.6rem;color:var(--t3)}
+.ds-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-right:4px;vertical-align:middle}
+.ds-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:.8rem;padding:0}
+.ds-del:hover{color:var(--red)}
+
+/* ── Main content ── */
+.main-content{display:flex;flex-direction:column;overflow:hidden}
+
+/* Tabs */
+.tabs-bar{
+  display:flex;border-bottom:1px solid var(--b1);background:var(--s1);
+  overflow-x:auto;flex-shrink:0;padding:0 16px;
+}
+.tab{
+  padding:12px 14px;font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;
+}
+.tab:hover{color:var(--t2)}
+.tab.active{color:var(--blue-l);border-bottom-color:var(--blue-l)}
+.tab-bd{display:none;flex:1;overflow-y:auto;padding:18px}
+.tab-bd.active{display:block}
+
+/* ── Session Report Banner ── */
+.session-report{
+  background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--blue);
+  padding:14px 18px;margin-bottom:16px;display:none;
+}
+.session-report.show{display:block}
+.sr-title{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-l);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.sr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.sr-stat{text-align:center}
+.sr-stat-l{font-family:var(--mono);font-size:.58rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.sr-stat-v{font-family:var(--mono);font-size:.95rem;color:var(--t1);font-weight:500}
+
+/* Site filter pills */
+.site-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.site-pill{
+  display:flex;align-items:center;gap:5px;padding:4px 10px;
+  border:1px solid var(--b2);font-family:var(--mono);font-size:.65rem;color:var(--t3);
+  cursor:pointer;transition:all .15s;background:transparent;
+}
+.site-pill:hover{border-color:var(--blue-l);color:var(--blue-l)}
+.site-pill.active{border-color:var(--blue-l);color:var(--blue-l);background:var(--blue-dim)}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
+.kpi{background:var(--s2);border:1px solid var(--b1);padding:12px 14px;border-top:2px solid transparent;transition:border-color .2s}
+.kpi:hover{border-top-color:var(--blue-l)}
+.kpi-l{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.kpi-v{font-family:var(--mono);font-size:1.65rem;font-weight:500;line-height:1;color:var(--t1)}
+.kpi-s{font-family:var(--mono);font-size:.62rem;color:var(--t3);margin-top:3px}
+
+/* Charts */
+.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.ch-grid.g3{grid-template-columns:1fr 1fr 1fr}
+.ch-card{background:var(--s2);border:1px solid var(--b1);padding:16px}
+.ch-card.span2{grid-column:1/-1}
+.ch-title{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.ch-wrap{position:relative;height:190px}
+
+/* Table */
+.tbl-wrap{border:1px solid var(--b1);overflow:auto;max-height:52vh}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+thead{background:var(--s3);position:sticky;top:0;z-index:5}
+th{padding:8px 11px;text-align:left;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--b1)}
+th:hover{color:var(--t2)}
+th.sorted{color:var(--blue-l)}
+td{padding:7px 11px;border-bottom:1px solid var(--b1);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--s3)}
+.pc{display:flex;align-items:center;gap:8px;max-width:220px}
+.pimg{width:30px;height:30px;object-fit:contain;background:var(--s3);border:1px solid var(--b1);flex-shrink:0}
+.pname{font-size:.75rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.price-m{font-family:var(--mono);font-size:.78rem;font-weight:500;color:var(--cyan);white-space:nowrap}
+.price-o{font-family:var(--mono);font-size:.65rem;color:var(--t3);text-decoration:line-through}
+.disc-tag{display:inline-block;padding:1px 5px;background:rgba(34,197,94,.08);color:var(--grn);font-family:var(--mono);font-size:.58rem;border:1px solid rgba(34,197,94,.2);margin-top:2px}
+.src-tag{display:inline-block;padding:1px 6px;font-family:var(--mono);font-size:.6rem;border:1px solid var(--b2);color:var(--t3)}
+.stars{color:var(--ylw);font-size:.7rem}
+.link-a{color:var(--blue-l);font-family:var(--mono);font-size:.65rem;text-decoration:none}
+.link-a:hover{color:var(--cyan)}
+.sp-btn{padding:2px 7px;background:transparent;border:1px solid var(--b2);color:var(--t3);font-family:var(--mono);font-size:.6rem;cursor:pointer;transition:all .15s}
+.sp-btn:hover{border-color:var(--pur);color:var(--pur)}
+.sp-btn.done{border-color:var(--grn);color:var(--grn)}
+/* expanded row */
+.det-row td{background:var(--s3);padding:12px 16px}
+.det-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.det-sec{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-l);margin-bottom:6px}
+.sp-tbl td:first-child{color:var(--t3);font-family:var(--mono);font-size:.68rem;padding:2px 8px 2px 0;width:40%;vertical-align:top}
+.sp-tbl td:last-child{font-size:.75rem}
+.desc-txt{font-size:.75rem;line-height:1.7;color:var(--t2);max-height:90px;overflow-y:auto}
+.rev-item{padding:5px 0;border-bottom:1px solid var(--b1);font-size:.72rem;color:var(--t2)}
+
+/* Toolbar / filters */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.srch-wrap{position:relative;flex:1;min-width:160px}
+.srch-wrap input{padding-left:26px}
+.srch-ico{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem}
+.filter-row{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:10px}
+.filter-row input,.filter-row select{font-size:.73rem;padding:5px 8px}
+.res-count{font-family:var(--mono);font-size:.66rem;color:var(--t3);white-space:nowrap}
+.btn-sm{padding:5px 11px;font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--b2);background:transparent;color:var(--t3);cursor:pointer;transition:all .15s}
+.btn-sm:hover{border-color:var(--blue-l);color:var(--blue-l)}
+.btn-sm.active{background:var(--blue-dim);border-color:var(--blue-l);color:var(--blue-l)}
+
+/* Pager */
+.pager{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:.68rem;color:var(--t3)}
+.pg-btns{display:flex;gap:3px}
+.pg-btn{padding:4px 8px;background:var(--s2);border:1px solid var(--b1);color:var(--t3);cursor:pointer;font-family:var(--mono);font-size:.66rem;transition:all .15s}
+.pg-btn:hover,.pg-btn.active{border-color:var(--blue-l);color:var(--blue-l);background:var(--blue-dim)}
+
+/* AI panel */
+.ai-panel{background:var(--s2);border:1px solid var(--b1);padding:20px;margin-bottom:14px}
+.ai-title{font-size:.9rem;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.ai-title-badge{font-family:var(--mono);font-size:.6rem;color:var(--grn);border:1px solid rgba(34,197,94,.25);padding:2px 7px}
+.ai-sub{font-size:.75rem;color:var(--t3);margin-bottom:14px}
+.ai-key-row{display:flex;gap:7px;margin-bottom:12px;align-items:flex-end}
+.ai-key-row .fld{flex:1}
+.ai-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ai-btn{padding:6px 13px;font-family:var(--mono);font-size:.65rem;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--b2);background:transparent;color:var(--t3);cursor:pointer;transition:all .15s}
+.ai-btn:hover,.ai-btn.sel{background:var(--blue-dim);border-color:var(--blue-l);color:var(--blue-l)}
+.ai-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-out{font-size:.82rem;line-height:1.85;color:var(--t1);min-height:160px;padding:14px;background:var(--s3);border:1px solid var(--b1);white-space:pre-wrap;font-family:var(--sans)}
+.ai-cursor{display:inline-block;width:2px;height:13px;background:var(--blue-l);animation:blink .6s step-end infinite;vertical-align:middle;margin-left:2px}
+
+/* Supplier Intel */
+.sup-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end}
+.sup-filters .fld{min-width:140px}
+.risk-badge{display:inline-block;padding:2px 7px;font-family:var(--mono);font-size:.6rem;font-weight:500}
+.risk-LOW{background:rgba(34,197,94,.1);color:var(--grn);border:1px solid rgba(34,197,94,.25)}
+.risk-MEDIUM{background:rgba(234,179,8,.1);color:var(--ylw);border:1px solid rgba(234,179,8,.25)}
+.risk-HIGH{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.quality-bar{height:4px;background:var(--b1);margin-top:3px;min-width:60px}
+.quality-fill{height:100%;background:var(--grn);transition:width .4s ease}
+.quality-fill.med{background:var(--ylw)}
+.quality-fill.low{background:var(--red)}
+
+/* Market Gaps */
+.gap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.gap-card{background:var(--s2);border:1px solid var(--b1);padding:14px;border-left:2px solid transparent;cursor:pointer;transition:all .15s}
+.gap-card:hover{background:var(--s3)}
+.gap-card.opp-HIGH{border-left-color:var(--grn)}
+.gap-card.opp-MEDIUM{border-left-color:var(--ylw)}
+.gap-card.opp-LOW{border-left-color:var(--t3)}
+.gap-cat{font-size:.82rem;font-weight:500;margin-bottom:4px}
+.gap-range{font-family:var(--mono);font-size:.68rem;color:var(--blue-l);margin-bottom:6px}
+.gap-stats{display:flex;gap:10px;flex-wrap:wrap}
+.gap-stat{font-family:var(--mono);font-size:.65rem;color:var(--t3)}
+.gap-stat span{color:var(--t1)}
+.opp-badge{display:inline-block;padding:2px 6px;font-family:var(--mono);font-size:.58rem;margin-top:6px}
+.opp-HIGH{background:rgba(34,197,94,.08);color:var(--grn);border:1px solid rgba(34,197,94,.2)}
+.opp-MEDIUM{background:rgba(234,179,8,.08);color:var(--ylw);border:1px solid rgba(234,179,8,.2)}
+.opp-LOW{background:var(--b0);color:var(--t3);border:1px solid var(--b1)}
+
+/* Compare */
+.cmp-sel{display:flex;gap:10px;margin-bottom:16px;align-items:flex-end}
+.cmp-sel>.fld{flex:1}
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cmp-card{background:var(--s2);border:1px solid var(--b1);padding:16px}
+.cmp-title{font-size:.82rem;font-weight:600;margin-bottom:14px;color:var(--blue-l)}
+.cmp-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--b1)}
+.cmp-row:last-child{border:none}
+.cmp-lbl{font-family:var(--mono);font-size:.64rem;color:var(--t3)}
+.cmp-v{font-family:var(--mono);font-size:.8rem;font-weight:500}
+.better{color:var(--grn)}
+.worse{color:var(--red)}
+
+/* Arbitrage */
+.arb-item{background:var(--s2);border:1px solid var(--b1);padding:12px 14px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.arb-item:hover{border-color:var(--blue-l)}
+.arb-name{font-size:.8rem;font-weight:500;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.arb-sites{display:flex;gap:8px;flex-wrap:wrap}
+.arb-site{font-family:var(--mono);font-size:.68rem;padding:3px 8px;border:1px solid var(--b2)}
+.arb-site.best{border-color:var(--grn);color:var(--grn)}
+.arb-site.worst{border-color:var(--red);color:var(--red)}
+.arb-saving{font-family:var(--mono);font-size:.75rem;color:var(--ylw);font-weight:500}
+.arb-detail{display:none;padding:10px 0 0;border-top:1px solid var(--b1);margin-top:8px}
+.arb-detail.open{display:block}
+
+/* Empty / Loader */
+.empty{text-align:center;padding:48px;border:1px solid var(--b1)}
+.empty-ico{font-size:2rem;margin-bottom:10px;opacity:.2}
+.empty-t{font-size:.9rem;color:var(--t3);margin-bottom:4px;font-weight:500}
+.empty-s{font-family:var(--mono);font-size:.7rem;color:var(--t3)}
+.spin{width:13px;height:13px;border:2px solid var(--b2);border-top-color:var(--blue-l);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Modal */
+.mbd{display:none;position:fixed;inset:0;background:rgba(8,11,18,.9);z-index:300;align-items:center;justify-content:center}
+.mbd.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--b1);width:420px;max-width:95vw}
+.m-hd{padding:14px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.m-t{font-size:.85rem;font-weight:600}
+.m-x{background:none;border:none;color:var(--t3);cursor:pointer;font-size:1rem}
+.m-x:hover{color:var(--t1)}
+.m-bd{padding:16px}
+.m-ft{padding:12px 16px;border-top:1px solid var(--b1);display:flex;gap:6px;justify-content:flex-end}
+
+/* status bar */
+.status-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;height:26px;background:rgba(8,11,18,.98);border-top:1px solid var(--b1);display:flex;align-items:center;gap:12px;padding:0 16px;font-family:var(--mono);font-size:.62rem;color:var(--t3)}
+.st-dot{width:5px;height:5px;border-radius:50%;background:var(--t3)}
+.st-dot.ok{background:var(--grn)}
+.st-dot.busy{background:var(--blue-l);animation:blink .8s infinite}
+.st-dot.err{background:var(--red)}
+#st-time{margin-left:auto;color:var(--t3)}
+
+/* Site colors */
+.sc-daraz    {background:#f57224}
+.sc-shophive {background:#1a73e8}
+.sc-carrefour{background:#c8102e}
+.sc-metro    {background:#003087}
+.sc-alfatah  {background:#00843d}
+
+/* ── Loading facts panel ── */
+.ld-layout{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
+.ld-facts{background:var(--s2);border:1px solid var(--b1);padding:18px}
+.ld-facts-title{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-l);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ld-facts-title::before{content:'';display:block;width:8px;height:8px;background:var(--blue-l);border-radius:50%}
+.fact-card{padding:12px;border:1px solid var(--b1);margin-bottom:10px;background:var(--s3)}
+.fact-site{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.fact-body{font-size:.76rem;line-height:1.65;color:var(--t2)}
+.fact-meta{display:flex;gap:10px;margin-top:7px;flex-wrap:wrap}
+.fact-chip{font-family:var(--mono);font-size:.62rem;padding:2px 8px;border:1px solid var(--b2);color:var(--t3)}
+.fact-chip.active{border-color:var(--blue-l);color:var(--blue-l);background:var(--blue-dim)}
+/* ── Custom site builder ── */
+.custom-step{padding:16px;border:1px solid var(--b1);margin-bottom:10px;background:var(--s2)}
+.custom-step-num{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-l);margin-bottom:8px}
+.custom-step h3{font-size:.82rem;font-weight:600;margin-bottom:6px}
+.custom-step p{font-size:.75rem;color:var(--t3);margin-bottom:10px;line-height:1.6}
+.probe-results{background:var(--s3);border:1px solid var(--b1);padding:12px;font-family:var(--mono);font-size:.7rem;color:var(--t2);margin:8px 0}
+.code-preview{background:var(--s3);border:1px solid var(--b1);padding:12px;font-family:var(--mono);font-size:.7rem;color:var(--t2);max-height:240px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.custom-sites-list .cs-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--b1);margin-bottom:5px}
+.cs-item-name{font-family:var(--mono);font-size:.72rem}
+.cs-item-status{font-family:var(--mono);font-size:.6rem;padding:2px 7px;border:1px solid var(--grn);color:var(--grn)}
+/* ── Market gaps improvements ── */
+.gap-heatmap{overflow-x:auto;margin-bottom:18px}
+.gap-heatmap table{border-collapse:collapse;font-size:.72rem;width:100%}
+.gap-heatmap th{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:6px 10px;border-bottom:1px solid var(--b1);white-space:nowrap}
+.gap-heatmap td{padding:6px 10px;border-bottom:1px solid var(--b1)}
+.heat-cell{display:inline-block;padding:3px 8px;font-family:var(--mono);font-size:.7rem;min-width:80px;text-align:center}
+.heat-0{background:var(--b0);color:var(--t3)}
+.heat-1{background:rgba(26,86,219,.12);color:var(--blue-l)}
+.heat-2{background:rgba(234,179,8,.12);color:var(--ylw)}
+.heat-3{background:rgba(34,197,94,.15);color:var(--grn)}
+.gap-insight{font-family:var(--mono);font-size:.68rem;color:var(--t3);padding:4px 0}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     WELCOME SCREEN
+══════════════════════════════════════════════════════ -->
+<div id="screen-welcome" class="screen flex-screen active">
+  <div class="wl-header">
+    <div class="wl-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" fill="#1a56db"/><path d="M6 16L13 23L26 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="6" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/></svg>
+      <div>
+        <div class="wl-logo-name">SIS</div>
+        <div class="wl-logo-sub">SCRAPER INTELLIGENCE SYSTEM</div>
+      </div>
+    </div>
+    <div class="wl-header-right">
+      <button class="btn-secondary" style="width:auto;margin:0;padding:5px 14px" onclick="openSettings()">⚙ Settings</button>
+      <button class="btn-secondary" style="width:auto;margin:0;padding:5px 14px" onclick="testConnections()">🔌 Test Connections</button>
+    </div>
+  </div>
+
+  <div class="wl-hero">
+    <div class="wl-left">
+      <div class="wl-eyebrow">Market Intelligence Layer</div>
+      <h1 class="wl-h1">Pakistan's <span>cross-platform</span><br/>scraper intelligence system</h1>
+      <p class="wl-desc">Simultaneously scrape, normalise and analyse product data across Pakistan's top e-commerce platforms. Surface pricing intelligence, supplier quality scores, brand dominance, market gaps, arbitrage opportunities and AI-powered strategic insights — all in one system.</p>
+
+      <div class="wl-eyebrow" style="margin-bottom:12px">Live Data Access Points</div>
+      <div class="access-list" id="access-list">
+        <div class="access-item">
+          <div class="access-left">
+            <div class="access-icon" style="color:#f57224">🛒</div>
+            <div><div class="access-name">Daraz.pk</div><div class="access-url">www.daraz.pk · Pakistan's largest marketplace</div></div>
+          </div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+        <div class="access-item">
+          <div class="access-left">
+            <div class="access-icon" style="color:#1a73e8">💻</div>
+            <div><div class="access-name">Shophive.com</div><div class="access-url">www.shophive.com · Electronics & tech</div></div>
+          </div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+        <div class="access-item">
+          <div class="access-left">
+            <div class="access-icon" style="color:#c8102e">🏪</div>
+            <div><div class="access-name">Carrefour.pk</div><div class="access-url">www.carrefour.pk · Grocery & general</div></div>
+          </div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+        <div class="access-item">
+          <div class="access-left">
+            <div class="access-icon" style="color:#003087">🏬</div>
+            <div><div class="access-name">Metro.pk</div><div class="access-url">metro-online.pk · Wholesale & retail</div></div>
+          </div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+        <div class="access-item">
+          <div class="access-left">
+            <div class="access-icon" style="color:#00843d">🏷️</div>
+            <div><div class="access-name">Alfatah.pk</div><div class="access-url">alfatah.pk · Grocery & household</div></div>
+          </div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wl-right">
+      <div class="qpanel-title">Start Intelligence Scan</div>
+      <div class="qpanel-sub">Enter search queries. The platform will simultaneously fetch and analyse data across all five marketplaces.</div>
+
+      <div class="fld">
+        <label class="lbl" style="font-family:var(--mono);font-size:.62rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Search Queries — press Enter to add each</label>
+        <div class="tag-inp-wrap" id="wl-tag-wrap" onclick="document.getElementById('wl-tag-inp').focus()">
+          <input id="wl-tag-inp" type="text" placeholder="e.g. laptop, mobile phone, shoes…" onkeydown="wlTagKey(event)"/>
+        </div>
+      </div>
+
+      <div class="qpanel-grid fld">
+        <div class="fld">
+          <label style="font-family:var(--mono);font-size:.62rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Max Pages</label>
+          <select id="wl-pages">
+            <option value="3">3 pages (~120)</option>
+            <option value="5">5 pages (~200)</option>
+            <option value="10">10 pages (~400)</option>
+            <option value="20">20 pages (~800)</option>
+            <option value="50">50 pages (~2000)</option>
+            <option value="100">100 pages (~4000)</option>
+            <option value="200" selected>200 pages (max)</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label style="font-family:var(--mono);font-size:.62rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Request Delay</label>
+          <select id="wl-delay">
+            <option value="1.0">1.0s — fast</option>
+            <option value="1.5" selected>1.5s — balanced</option>
+            <option value="2.0">2.0s — polite</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filters-acc fld">
+        <div class="filters-acc-toggle" onclick="toggleWlFilters()">
+          <span>Advanced Filters (optional)</span><span id="wl-arr">▸</span>
+        </div>
+        <div class="filters-acc-body" id="wl-filters">
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Min Price PKR</label><input type="number" id="wlf-min" placeholder="0"/></div>
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Max Price PKR</label><input type="number" id="wlf-max" placeholder="∞"/></div>
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Min Rating</label>
+            <select id="wlf-rat"><option value="0">Any</option><option value="3">★3+</option><option value="4">★4+</option></select>
+          </div>
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Keywords</label><input type="text" id="wlf-kw" placeholder="5G, organic…"/></div>
+        </div>
+      </div>
+
+      <div class="fld" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-family:var(--mono);font-size:.72rem;color:var(--t3);cursor:pointer">
+        <input type="checkbox" id="wl-details" style="width:auto;accent-color:var(--blue-l)"/>
+        Fetch full product details &amp; customer reviews
+      </div>
+
+      <button class="btn-run" id="wl-run" onclick="startScan()">
+        <span>▶</span> INITIATE INTELLIGENCE SCAN
+      </button>
+      <button class="btn-secondary" onclick="loadExistingData()">← Load Previous Session Data</button>
+
+      <div id="wl-test-result" style="display:none;margin-top:10px;font-family:var(--mono);font-size:.7rem;padding:8px 10px;border:1px solid var(--b1);background:var(--s1)"></div>
+    </div>
+  </div>
+
+  <div class="wl-footer">
+    <div class="wl-footer-l">Scraper Intelligence System · v5.0</div>
+    <div style="display:flex;gap:8px">
+      <div style="font-family:var(--mono);font-size:.62rem;color:var(--t3)">Data sources: 5 platforms active</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════════════════ -->
+<div id="screen-loading" class="screen flex-screen">
+  <div class="ld-inner" style="max-width:1100px">
+    <div class="ld-header">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div class="spin"></div>
+        <div class="ld-title">Intelligence Scan Running</div>
+      </div>
+      <div class="ld-query" id="ld-query">Scanning: —</div>
+    </div>
+    <div class="ld-bar-wrap"><div class="ld-bar-fill" id="ld-bar" style="width:1%"></div></div>
+    <div class="ld-sites" id="ld-sites"></div>
+    <div class="ld-stats">
+      <div class="ld-stat"><div class="ld-stat-l">Products Scraped</div><div class="ld-stat-v" id="ld-scraped">0</div></div>
+      <div class="ld-stat"><div class="ld-stat-l">New Discovered</div><div class="ld-stat-v" id="ld-new">0</div></div>
+      <div class="ld-stat"><div class="ld-stat-l">Sites Done</div><div class="ld-stat-v" id="ld-sitesdone">0/5</div></div>
+      <div class="ld-stat"><div class="ld-stat-l">Progress</div><div class="ld-stat-v" id="ld-pct">0%</div></div>
+    </div>
+    <div class="ld-layout">
+      <div>
+        <div style="font-family:var(--mono);font-size:.62rem;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Activity Log</div>
+        <div class="ld-log" id="ld-log"></div>
+      </div>
+      <div>
+        <div class="ld-facts-title">Platform Intelligence</div>
+        <div id="ld-facts-panel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN DASHBOARD
+══════════════════════════════════════════════════════ -->
+<div id="screen-main" class="screen">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-logo" onclick="goWelcome()" style="cursor:pointer">
+      <div class="hdr-logo-mark">SIS</div>
+      <div class="hdr-logo-name">SIS</div>
+    </div>
+
+    <!-- Ticker strip -->
+    <div class="ticker-strip">
+      <div class="ticker-track" id="ticker-track">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Right controls -->
+    <div class="hdr-right">
+      <button class="hbtn" id="sched-btn" onclick="openSched()"><div class="hbtn-dot"></div><span id="sched-lbl">Scheduler</span></button>
+      <button class="hbtn" id="alerts-btn" onclick="toggleAlerts()">🔔 <span id="alerts-count">0</span> Alerts</button>
+      <button class="hbtn" id="actlog-btn" onclick="toggleActLog()">📋 Log</button>
+      <button class="hbtn" onclick="openSettings()">⚙</button>
+      <button class="hbtn" onclick="goWelcome()" style="color:var(--blue-l);border-color:var(--blue-l)">+ New Scan</button>
+    </div>
+  </div>
+
+  <!-- Sliding panels -->
+  <div class="act-panel" id="act-panel">
+    <div class="act-panel-hd">
+      <div class="act-panel-title">Activity Log</div>
+      <button class="act-panel-x" onclick="toggleActLog()">✕</button>
+    </div>
+    <div class="act-panel-body" id="act-panel-body"></div>
+  </div>
+  <div class="alerts-panel" id="alerts-panel">
+    <div class="act-panel-hd">
+      <div class="act-panel-title">🔔 Live Alerts</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn-sm" onclick="fetch('/api/alerts/clear',{method:'POST'}).then(()=>{store.alerts=[];renderAlerts();})">Clear</button>
+        <button class="act-panel-x" onclick="toggleAlerts()">✕</button>
+      </div>
+    </div>
+    <div id="alerts-body"></div>
+  </div>
+
+  <!-- Body -->
+  <div class="main-body">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-section">
+        <div class="sb-title">Datasets</div>
+        <div id="ds-list-main"><div style="font-family:var(--mono);font-size:.7rem;color:var(--t3)">No datasets yet.</div></div>
+        <button class="sb-btn sb-btn-line" onclick="goWelcome()" style="margin-top:8px">+ New Scan</button>
+        <button class="sb-btn sb-btn-red" onclick="clearAll()">✕ Clear All</button>
+      </div>
+      <div class="sb-section" style="flex:1">
+        <div class="sb-title">Export</div>
+        <button class="sb-btn" onclick="exportCSV()" style="background:var(--s2);border:1px solid var(--b2);color:var(--t2);font-size:.68rem">↓ Export CSV</button>
+        <button class="sb-btn sb-btn-line" onclick="exportJSON()" style="font-size:.68rem">↓ Export JSON</button>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+      <!-- Tabs -->
+      <div class="tabs-bar">
+        <div class="tab active" onclick="showTab('overview',this)">Overview</div>
+        <div class="tab" onclick="showTab('products',this)">Products</div>
+        <div class="tab" onclick="showTab('ai',this)">AI Insights</div>
+        <div class="tab" onclick="showTab('supplier',this)">Supplier Intel</div>
+        <div class="tab" onclick="showTab('brands',this)">Brand Analysis</div>
+        <div class="tab" onclick="showTab('compare',this)">Comparative</div>
+        <div class="tab" onclick="showTab('gaps',this)">Market Gaps</div>
+        <div class="tab" onclick="showTab('arbitrage',this)">Arbitrage</div>
+      <div class="tab" onclick="showTab('custom',this)">+ Add Source</div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div class="tab-bd active" id="tab-overview">
+        <!-- Session report -->
+        <div class="session-report" id="session-report">
+          <div class="sr-title"><span>📊 Session Intelligence Report</span><button class="btn-sm" onclick="document.getElementById('session-report').classList.remove('show')">Dismiss</button></div>
+          <div class="sr-grid" id="sr-grid"></div>
+        </div>
+        <!-- Site filter pills -->
+        <div class="site-pills" id="site-pills">
+          <div class="site-pill active" onclick="setSiteFilt(null,this)">All Platforms</div>
+        </div>
+        <!-- KPIs -->
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-l">Products</div><div class="kpi-v" id="k-total">0</div><div class="kpi-s" id="k-ds">0 datasets</div></div>
+          <div class="kpi"><div class="kpi-l">Sellers</div><div class="kpi-v" id="k-sellers">0</div></div>
+          <div class="kpi"><div class="kpi-l">Avg Price PKR</div><div class="kpi-v" id="k-avg">—</div><div class="kpi-s" id="k-med"></div></div>
+          <div class="kpi"><div class="kpi-l">Price Range</div><div class="kpi-v" id="k-range" style="font-size:1rem;margin-top:6px">—</div></div>
+          <div class="kpi"><div class="kpi-l">Discounted</div><div class="kpi-v" id="k-disc">0%</div><div class="kpi-s" id="k-adsc"></div></div>
+          <div class="kpi"><div class="kpi-l">Avg Rating</div><div class="kpi-v" id="k-rat">—</div></div>
+        </div>
+        <!-- Charts -->
+        <div class="ch-grid">
+          <div class="ch-card"><div class="ch-title">Price Distribution</div><div class="ch-wrap"><canvas id="ch-price"></canvas></div></div>
+          <div class="ch-card"><div class="ch-title">Products by Platform</div><div class="ch-wrap"><canvas id="ch-source"></canvas></div></div>
+          <div class="ch-card"><div class="ch-title">Top Sellers</div><div class="ch-wrap"><canvas id="ch-sellers"></canvas></div></div>
+          <div class="ch-card"><div class="ch-title">Category Breakdown</div><div class="ch-wrap"><canvas id="ch-cats"></canvas></div></div>
+        </div>
+        <div class="ch-grid">
+          <div class="ch-card"><div class="ch-title">Brand Intelligence</div><div class="ch-wrap"><canvas id="ch-brands"></canvas></div></div>
+          <div class="ch-card"><div class="ch-title">Rating Distribution</div><div class="ch-wrap"><canvas id="ch-rating"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="tab-bd" id="tab-products">
+        <div class="filter-row">
+          <div><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:3px">Min Price</label><input type="number" id="fp-min" placeholder="0" oninput="applyFilters()"/></div>
+          <div><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:3px">Max Price</label><input type="number" id="fp-max" placeholder="∞" oninput="applyFilters()"/></div>
+          <div><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:3px">Min Rating</label><select id="fp-rat" onchange="applyFilters()"><option value="0">Any</option><option value="3">★3+</option><option value="4">★4+</option></select></div>
+          <div><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:3px">Min Discount</label><select id="fp-disc" onchange="applyFilters()"><option value="0">Any</option><option value="10">10%+</option><option value="20">20%+</option><option value="50">50%+</option></select></div>
+          <div><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:3px">Platform</label><select id="fp-src" onchange="applyFilters()"><option value="">All</option></select></div>
+        </div>
+        <div class="toolbar">
+          <div class="srch-wrap"><span class="srch-ico">⌕</span><input id="srch" type="text" placeholder="Search name, seller, brand, category…" oninput="applyFilters()"/></div>
+          <span class="res-count" id="res-count"></span>
+          <div style="display:flex;gap:5px;margin-left:auto">
+            <button class="btn-sm" onclick="exportCSV()">↓ CSV</button>
+            <button class="btn-sm" onclick="exportJSON()">↓ JSON</button>
+          </div>
+        </div>
+        <div id="tbl-area"><div class="empty"><div class="empty-ico">📦</div><div class="empty-t">No data yet</div><div class="empty-s">Run a scan to load products</div></div></div>
+        <div class="pager" id="pager" style="display:none"><span id="pg-info"></span><div class="pg-btns" id="pg-btns"></div></div>
+      </div>
+
+      <!-- AI INSIGHTS -->
+      <div class="tab-bd" id="tab-ai">
+        <div class="ai-panel">
+          <div class="ai-title">AI Market Analyst <span class="ai-title-badge">Claude Powered</span></div>
+          <div class="ai-sub">Enter your Anthropic API key to enable AI-powered market analysis across all scraped datasets.</div>
+          <div class="ai-key-row">
+            <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Anthropic API Key</label><input type="password" id="ai-key" placeholder="sk-ant-…" oninput="saveApiKey()"/></div>
+            <button class="btn-sm active" onclick="saveApiKey()" style="align-self:flex-end;height:32px">Save Key</button>
+          </div>
+          <div class="ai-btns">
+            <button class="ai-btn" onclick="runAI('summary')">📊 Market Summary</button>
+            <button class="ai-btn" onclick="runAI('pricing')">💰 Pricing Intel</button>
+            <button class="ai-btn" onclick="runAI('sellers')">🏪 Seller Analysis</button>
+            <button class="ai-btn" onclick="runAI('opportunities')">🎯 Opportunities</button>
+            <button class="ai-btn" onclick="runAI('crossplatform')">🔀 Cross-Platform</button>
+            <button class="ai-btn" onclick="runAI('report')">📝 Full Report</button>
+          </div>
+          <div id="ai-out" class="ai-out"><span style="color:var(--t3);font-family:var(--mono);font-size:.75rem">Enter your API key above and select an analysis type to generate AI-powered intelligence.</span></div>
+        </div>
+      </div>
+
+      <!-- SUPPLIER INTEL -->
+      <div class="tab-bd" id="tab-supplier">
+        <div class="sup-filters">
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Platform</label><select id="sup-site" onchange="loadSupplier()"><option value="">All Platforms</option></select></div>
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Category</label><input type="text" id="sup-cat" placeholder="e.g. Smartphones" onchange="loadSupplier()"/></div>
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Brand</label><input type="text" id="sup-brand" placeholder="e.g. Samsung" onchange="loadSupplier()"/></div>
+          <div class="fld" style="align-self:flex-end"><button class="btn-sm active" onclick="loadSupplier()">Apply Filters</button></div>
+        </div>
+        <div id="sup-area"><div class="empty"><div class="empty-ico">🏪</div><div class="empty-t">No supplier data</div><div class="empty-s">Run a scan to analyse suppliers</div></div></div>
+      </div>
+
+      <!-- BRAND ANALYSIS -->
+      <div class="tab-bd" id="tab-brands">
+        <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">AI-Classified Brand Intelligence</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--t3)">Brands detected via keyword analysis of product titles and descriptions</div>
+          </div>
+          <button class="btn-sm" onclick="buildBrands()">↻ Refresh</button>
+        </div>
+        <div class="ch-grid" style="margin-bottom:14px">
+          <div class="ch-card"><div class="ch-title">Brand Market Share</div><div class="ch-wrap"><canvas id="ch-brand-share"></canvas></div></div>
+          <div class="ch-card"><div class="ch-title">Brand Avg Price (PKR)</div><div class="ch-wrap"><canvas id="ch-brand-price"></canvas></div></div>
+        </div>
+        <div id="brand-tbl-area"><div class="empty"><div class="empty-ico">🏷️</div><div class="empty-t">No brand data</div></div></div>
+      </div>
+
+      <!-- COMPARATIVE -->
+      <div class="tab-bd" id="tab-compare">
+        <div class="cmp-sel">
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Dataset A</label><select id="cmp-a" onchange="loadCompare()"><option value="">Select dataset…</option></select></div>
+          <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Dataset B</label><select id="cmp-b" onchange="loadCompare()"><option value="">Select dataset…</option></select></div>
+          <div style="align-self:flex-end"><button class="btn-sm active" onclick="loadCompare()">Compare</button></div>
+        </div>
+        <div id="cmp-area"><div class="empty"><div class="empty-ico">⚖️</div><div class="empty-t">Select two datasets</div><div class="empty-s">Choose datasets from the dropdowns above</div></div></div>
+        <div class="ch-grid" id="cmp-charts" style="margin-top:14px;display:none">
+          <div class="ch-card"><div class="ch-title">Price Distribution Comparison</div><div class="ch-wrap"><canvas id="ch-cmp-price"></canvas></div></div>
+          <div class="ch-card"><div class="ch-title">Category Overlap</div><div class="ch-wrap"><canvas id="ch-cmp-cats"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- MARKET GAPS -->
+      <div class="tab-bd" id="tab-gaps">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">Market Gap Finder</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--t3)">Identifies underserved category × price segments — higher gap score = greater opportunity</div>
+          </div>
+          <button class="btn-sm" onclick="buildGaps()">↻ Refresh</button>
+        </div>
+        <div class="ch-grid" style="margin-bottom:14px">
+          <div class="ch-card span2"><div class="ch-title">Gap Score by Category × Price Range</div><div class="ch-wrap" style="height:220px"><canvas id="ch-gaps"></canvas></div></div>
+        </div>
+        <div class="gap-grid" id="gap-grid"><div class="empty" style="grid-column:1/-1"><div class="empty-ico">🔭</div><div class="empty-t">No gap data</div><div class="empty-s">Run a scan to discover market gaps</div></div></div>
+      </div>
+
+      <!-- ARBITRAGE -->
+      <div class="tab-bd" id="tab-arbitrage">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">Cross-Platform Arbitrage</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--t3)">Products available across multiple platforms at significantly different prices</div>
+          </div>
+          <button class="btn-sm" onclick="buildArbitrage()">↻ Refresh</button>
+        </div>
+        <div id="arb-area"><div class="empty"><div class="empty-ico">💹</div><div class="empty-t">No arbitrage data</div><div class="empty-s">Scrape same query across multiple platforms to discover price gaps</div></div></div>
+      </div>
+
+
+      <!-- ── CUSTOM SITE ── -->
+      <div class="tab-bd" id="tab-custom">
+        <div style="max-width:720px">
+          <div style="margin-bottom:20px">
+            <div style="font-size:.9rem;font-weight:600;margin-bottom:4px">Add a Custom Data Source</div>
+            <div style="font-family:var(--mono);font-size:.72rem;color:var(--t3);line-height:1.7">The AI will analyse the target website's structure, then generate and register a customised scraper. Requires your Anthropic API key.</div>
+          </div>
+
+          <!-- Step 1: Enter URL -->
+          <div class="custom-step">
+            <div class="custom-step-num">Step 1 — Target Website</div>
+            <h3>Enter the website URL to add as a data source</h3>
+            <p>Enter the full URL of the e-commerce site you want to scrape. The system will probe its structure, detect the platform (Shopify, Magento, custom) and identify product listing patterns.</p>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <input type="text" id="cs-url" placeholder="https://www.example.com" style="flex:1"/>
+              <input type="text" id="cs-testq" placeholder="Test query (e.g. laptop)" style="width:180px"/>
+              <button class="btn-sm active" onclick="probeCustomSite()">🔍 Probe Site</button>
+            </div>
+            <div id="cs-probe-result" class="probe-results" style="display:none"></div>
+          </div>
+
+          <!-- Step 2: AI Build -->
+          <div class="custom-step">
+            <div class="custom-step-num">Step 2 — AI Scraper Generation</div>
+            <h3>Generate a customised scraper</h3>
+            <p>Claude analyses the site structure and writes a bespoke Python scraper function tuned to that site's specific HTML layout, API endpoints, and pagination pattern.</p>
+            <button class="btn-sm active" id="cs-build-btn" onclick="buildCustomScraper()" disabled>⚡ Generate Scraper with AI</button>
+            <div style="margin-top:10px;display:none" id="cs-code-wrap">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:5px">Generated Scraper Code</div>
+              <div class="code-preview" id="cs-code-preview"></div>
+            </div>
+          </div>
+
+          <!-- Step 3: Register -->
+          <div class="custom-step">
+            <div class="custom-step-num">Step 3 — Register & Test</div>
+            <h3>Activate the scraper</h3>
+            <p>Register the generated scraper into the system. It will immediately appear as a data source in all future scans.</p>
+            <div style="display:flex;gap:8px">
+              <button class="btn-sm active" id="cs-reg-btn" onclick="registerCustomScraper()" disabled>✓ Register Scraper</button>
+              <button class="btn-sm" id="cs-test-btn" onclick="testCustomScraper()" disabled>▶ Test Run</button>
+            </div>
+            <div id="cs-test-result" style="display:none;margin-top:8px" class="probe-results"></div>
+          </div>
+
+          <!-- Registered custom sites -->
+          <div style="margin-top:20px">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:10px">Registered Custom Sources</div>
+            <div class="custom-sites-list" id="custom-sites-list">
+              <div style="font-family:var(--mono);font-size:.72rem;color:var(--t3)">No custom sources registered yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-content -->
+  </div><!-- /main-body -->
+</div><!-- /screen-main -->
+
+<!-- Status bar -->
+<div class="status-bar" id="status-bar" style="display:none">
+  <div class="st-dot" id="st-dot"></div>
+  <span id="st-msg">Ready</span>
+  <span style="color:var(--t3)">|</span>
+  <span id="st-store">0 products</span>
+  <span id="st-time"></span>
+</div>
+
+<!-- Settings modal -->
+<div class="mbd" id="settings-modal">
+  <div class="modal">
+    <div class="m-hd"><div class="m-t">Settings</div><button class="m-x" onclick="closeSettings()">✕</button></div>
+    <div class="m-bd">
+      <div class="fld" style="margin-bottom:10px">
+        <label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Anthropic API Key</label>
+        <input type="password" id="set-key" placeholder="sk-ant-…"/>
+      </div>
+      <p style="font-family:var(--mono);font-size:.68rem;color:var(--t3)">Used for AI Insights tab. Stored in server memory only — not written to disk.</p>
+    </div>
+    <div class="m-ft">
+      <button class="btn-sm active" onclick="saveSettings()">Save</button>
+      <button class="btn-sm" onclick="closeSettings()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scheduler modal -->
+<div class="mbd" id="sched-modal">
+  <div class="modal">
+    <div class="m-hd"><div class="m-t">Auto-Refresh Scheduler</div><button class="m-x" onclick="closeSched()">✕</button></div>
+    <div class="m-bd">
+      <div class="fld" style="margin-bottom:8px"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Queries (comma separated)</label><input type="text" id="sched-q" placeholder="laptop, shoes, mobile"/></div>
+      <div class="fld" style="margin-bottom:8px"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Pages per run</label><select id="sched-pages"><option value="3">3 pages</option><option value="5" selected>5 pages</option><option value="10">10 pages</option></select></div>
+      <div class="fld"><label style="font-family:var(--mono);font-size:.6rem;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Interval</label><select id="sched-int"><option value="5">Every 5 min</option><option value="15" selected>Every 15 min</option><option value="30">Every 30 min</option><option value="60">Every 1 hour</option></select></div>
+    </div>
+    <div class="m-ft">
+      <button class="btn-sm" id="sched-stop" onclick="stopSched()" style="display:none">■ Stop</button>
+      <button class="btn-sm active" id="sched-start" onclick="startSched()">▶ Start</button>
+      <button class="btn-sm" onclick="closeSched()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const store = {
+  datasets: {},        // key → products[]
+  allFlat: [],
+  filtered: [],
+  tags: [],
+  page: 1, perPage: 30,
+  sortCol: null, sortDir: 1,
+  siteFilt: null,
+  dsFilter: null,
+  charts: {},
+  apiKey: localStorage.getItem('pip_api_key') || '',
+  alerts: [],
+  lastSession: null,
+  scan: { running: false, stats: { sites_done: [] }, steps: [], pct: 0, current_site: '' },
+};
+
+const SITE_COLORS = {
+  'daraz.pk':    '#f57224',
+  'shophive.com':'#1a73e8',
+  'carrefour.pk':'#c8102e',
+  'metro.pk':    '#003087',
+  'alfatah.pk':  '#00843d',
+};
+const PAL = ['#3b82f6','#22c55e','#eab308','#f97316','#8b5cf6','#ef4444','#06b6d4','#14b8a6','#f43f5e','#a3e635'];
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-main') {
+    document.getElementById('status-bar').style.display = 'flex';
+  }
+}
+function goWelcome() { showScreen('screen-welcome'); }
+
+// ═══════════════════════════════════════════════════════════════════
+// WELCOME — TAG INPUT
+// ═══════════════════════════════════════════════════════════════════
+function wlTagKey(e) {
+  const inp = document.getElementById('wl-tag-inp');
+  if ((e.key === 'Enter' || e.key === ',') && inp.value.trim()) {
+    e.preventDefault(); addTag(inp.value.trim().replace(/,/g,'')); inp.value = '';
+  } else if (e.key === 'Backspace' && !inp.value && store.tags.length) {
+    removeTag(store.tags.length - 1);
+  }
+}
+function addTag(v) { if (!v || store.tags.includes(v)) return; store.tags.push(v); renderTags(); }
+function removeTag(i) { store.tags.splice(i,1); renderTags(); }
+function renderTags() {
+  const wrap = document.getElementById('wl-tag-wrap');
+  wrap.querySelectorAll('.qtag').forEach(t=>t.remove());
+  const inp = document.getElementById('wl-tag-inp');
+  store.tags.forEach((t,i) => {
+    const el = document.createElement('div'); el.className = 'qtag';
+    el.innerHTML = `${t}<button class="qtag-x" onclick="removeTag(${i})">×</button>`;
+    wrap.insertBefore(el, inp);
+  });
+}
+function toggleWlFilters() {
+  const b = document.getElementById('wl-filters');
+  b.classList.toggle('open');
+  document.getElementById('wl-arr').textContent = b.classList.contains('open') ? '▾' : '▸';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// START SCAN
+// ═══════════════════════════════════════════════════════════════════
+async function startScan() {
+  // Clear seen steps tracking so new scan shows fresh logs
+  _seenStepCount = 0;
+  const inp = document.getElementById('wl-tag-inp').value.trim();
+  if (inp) { addTag(inp); document.getElementById('wl-tag-inp').value = ''; }
+  if (!store.tags.length) { alert('Please add at least one search query.'); return; }
+
+  const queries = [...store.tags];
+  const pages   = parseInt(document.getElementById('wl-pages').value);
+  const delay   = parseFloat(document.getElementById('wl-delay').value);
+  const details = document.getElementById('wl-details').checked;
+  const filters = {
+    min_price:    document.getElementById('wlf-min').value || null,
+    max_price:    document.getElementById('wlf-max').value || null,
+    min_rating:   document.getElementById('wlf-rat').value || 0,
+    keywords:     document.getElementById('wlf-kw').value || '',
+  };
+
+  document.getElementById('wl-run').disabled = true;
+
+  // Show loading screen
+  showScreen('screen-loading');
+  document.getElementById('ld-query').textContent = `Scanning: ${queries.join(', ')}`;
+  document.getElementById('ld-bar').style.width = '1%';
+  initLdSites();
+
+  // Start scrape (non-blocking)
+  await fetch('/api/scrape', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ queries, pages, delay, fetch_details: details, filters }),
+  });
+
+  // Poll status
+  pollScanStatus();
+}
+
+function initLdSites() {
+  const sites = ['daraz.pk','shophive.com','carrefour.pk','metro.pk','alfatah.pk'];
+  document.getElementById('ld-sites').innerHTML = sites.map(s =>
+    `<div class="ld-site" id="lds-${s.replace('.','_')}"><div class="ld-dot"></div>${s}</div>`
+  ).join('');
+  document.getElementById('ld-log').innerHTML = '';
+}
+
+let _pollInterval = null;
+function pollScanStatus() {
+  clearInterval(_pollInterval);
+  _pollInterval = setInterval(async () => {
+    try {
+      const d = await fetch('/api/scan/status').then(r=>r.json());
+      updateLoadingScreen(d);
+      // Keep act log panel updated if open
+      if (document.getElementById('act-panel')?.classList.contains('open')) {
+        loadActLog();
+      }
+      if (!d.running && d.pct >= 100) {
+        clearInterval(_pollInterval);
+        setTimeout(transitionToDashboard, 1000);
+      }
+    } catch(e) { /* network hiccup, keep polling */ }
+  }, 500);
+}
+
+// FIX: use sequential index instead of content-based key to prevent dropped log lines
+let _seenStepCount = 0;
+function updateLoadingScreen(d) {
+  const bar  = document.getElementById('ld-bar');
+  const pct  = Math.max(1, Math.min(100, d.pct||0));
+  bar.style.width = pct + '%';
+  document.getElementById('ld-pct').textContent = pct + '%';
+  const st = d.stats || {};
+  document.getElementById('ld-scraped').textContent = (st.scraped||0).toLocaleString();
+  document.getElementById('ld-new').textContent    = (st.new||0).toLocaleString();
+  document.getElementById('ld-sitesdone').textContent = `${(st.sites_done||[]).length}/5`;
+
+  // Update site indicators
+  const done  = new Set(st.sites_done||[]);
+  const cur   = d.current_site || '';
+  ['daraz.pk','shophive.com','carrefour.pk','metro.pk','alfatah.pk'].forEach(s => {
+    const el = document.getElementById('lds-'+s.replace('.','_'));
+    if (!el) return;
+    el.className = 'ld-site' + (done.has(s)?' done':s===cur?' active':'');
+  });
+
+  // FIX: append only genuinely NEW steps using sequential index — no more dropped duplicates
+  const steps = d.steps || [];
+  const log = document.getElementById('ld-log');
+  if (steps.length > _seenStepCount) {
+    const newSteps = steps.slice(_seenStepCount);
+    newSteps.forEach(step => {
+      const row = document.createElement('div');
+      row.className = `ld-log-row ${step.level||'info'}`;
+      row.innerHTML = `<span class="ld-log-time">${step.t}</span><span class="ld-log-msg">${escHtml(step.msg)}</span>`;
+      log.appendChild(row);
+    });
+    _seenStepCount = steps.length;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // Sync scan state and refresh intelligence panel — FIX: called directly here, no monkey-patch
+  store.scan = d;
+  buildFactsPanel(cur);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function transitionToDashboard() {
+  _seenStepCount = 0;
+  await refreshDatasets();
+  applyFilters();          // populate store.filtered so Products tab works immediately
+  showScreen('screen-main');
+  document.getElementById('wl-run').disabled = false;
+  showTab('overview', document.querySelector('.tab'));
+  buildOverview();
+  buildTickers();
+  loadActLog();
+  fetchAlerts();
+  if (store.lastSession) showSessionReport(store.lastSession);
+}
+
+async function loadExistingData() {
+  await refreshDatasets();
+  if (Object.keys(store.datasets).length === 0) {
+    alert('No previous session data found. Run a scan first.');
+    return;
+  }
+  applyFilters();   // populate store.filtered before rendering
+  showScreen('screen-main');
+  document.getElementById('status-bar').style.display='flex';
+  showTab('overview', document.querySelector('.tab'));
+  buildOverview(); buildTickers(); loadActLog(); fetchAlerts();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════════
+function showTab(id, el) {
+  document.querySelectorAll('.tab-bd').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id==='overview')  buildOverview();
+  if (id==='products')  { applyFilters(); }   // ensure filtered is populated on tab switch
+  if (id==='supplier')  loadSupplier();
+  if (id==='brands')    buildBrands();
+  if (id==='compare')   populateCmpSelects();
+  if (id==='gaps')      buildGaps();
+  if (id==='arbitrage') buildArbitrage();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+async function refreshDatasets() {
+  const d = await fetch('/api/datasets').then(r=>r.json()).catch(()=>({}));
+  for (const [k] of Object.entries(d)) {
+    const ds = await fetch(`/api/dataset/${encodeURIComponent(k)}`).then(r=>r.json()).catch(()=>({products:[]}));
+    store.datasets[k] = ds.products;
+  }
+  for (const k of Object.keys(store.datasets)) {
+    if (!(k in d)) delete store.datasets[k];
+  }
+  store.allFlat = Object.values(store.datasets).flat();
+  renderDsList();
+  buildSitePills();
+  buildFpSrc();
+  populateCmpSelects();
+  buildSupSiteSelect();
+  const total = store.allFlat.length;
+  document.getElementById('st-store').textContent = `${total.toLocaleString()} products`;
+  // Load last session report
+  const log = await fetch('/api/activity-log').then(r=>r.json()).catch(()=>({log:[]}));
+  if (log.log?.length) store.lastSession = log.log[0];
+}
+
+function filteredProducts() {
+  if (store.siteFilt) return store.allFlat.filter(p=>p.source===store.siteFilt);
+  return store.allFlat;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SITE PILLS
+// ═══════════════════════════════════════════════════════════════════
+function buildSitePills() {
+  const sites = [...new Set(store.allFlat.map(p=>p.source).filter(Boolean))];
+  const el = document.getElementById('site-pills');
+  el.innerHTML = `<div class="site-pill ${!store.siteFilt?'active':''}" onclick="setSiteFilt(null,this)">All Platforms</div>` +
+    sites.map(s => {
+      const col = SITE_COLORS[s]||'#888';
+      return `<div class="site-pill ${store.siteFilt===s?'active':''}" onclick="setSiteFilt('${s}',this)"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>${s}</div>`;
+    }).join('');
+}
+function setSiteFilt(site, el) {
+  store.siteFilt = site;
+  document.querySelectorAll('.site-pill').forEach(p=>p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  buildOverview();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DATASETS SIDEBAR
+// ═══════════════════════════════════════════════════════════════════
+function renderDsList() {
+  const el = document.getElementById('ds-list-main');
+  const keys = Object.keys(store.datasets);
+  if (!keys.length) { el.innerHTML='<div style="font-family:var(--mono);font-size:.7rem;color:var(--t3)">No datasets.</div>'; return; }
+  el.innerHTML = keys.map(k => {
+    const [site,query] = k.split('::',2);
+    const col = SITE_COLORS[site]||'#888';
+    return `<div class="ds-item ${store.dsFilter===k?'sel':''}" onclick="setDsFilter('${k}')">
+      <div style="overflow:hidden"><div class="ds-name"><span class="ds-dot" style="background:${col}"></span>${query||k}</div>
+        <div class="ds-meta">${site} · ${(store.datasets[k]||[]).length}p</div></div>
+      <button class="ds-del" onclick="event.stopPropagation();deleteDs('${k}')">✕</button>
+    </div>`;
+  }).join('');
+}
+function setDsFilter(k) { store.dsFilter = store.dsFilter===k?null:k; renderDsList(); applyFilters(); }
+async function deleteDs(k) {
+  await fetch('/api/dataset/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k})});
+  delete store.datasets[k]; store.allFlat=Object.values(store.datasets).flat();
+  if (store.dsFilter===k) store.dsFilter=null;
+  renderDsList(); buildSitePills(); applyFilters(); buildOverview();
+  document.getElementById('st-store').textContent=`${store.allFlat.length} products`;
+}
+
+function buildSupSiteSelect() {
+  const sites=[...new Set(store.allFlat.map(p=>p.source).filter(Boolean))];
+  const el=document.getElementById('sup-site');
+  if (!el) return;
+  el.innerHTML='<option value="">All Platforms</option>'+sites.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+function buildFpSrc() {
+  const sites=[...new Set(store.allFlat.map(p=>p.source).filter(Boolean))];
+  const el=document.getElementById('fp-src'); if (!el) return;
+  el.innerHTML='<option value="">All</option>'+sites.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TICKERS
+// ═══════════════════════════════════════════════════════════════════
+async function buildTickers() {
+  const prods = store.allFlat;
+  if (!prods.length) return;
+  const prices  = prods.map(p=>p.price_pkr).filter(Boolean);
+  const avg     = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
+  const discs   = prods.filter(p=>{const m=(p.discount||'').match(/(\d+)/);return m&&+m[1]>=40;});
+  const srcC    = {};prods.forEach(p=>{const s=p.source||'?';srcC[s]=(srcC[s]||0)+1;});
+  const topSrc  = Object.entries(srcC).sort((a,b)=>b[1]-a[1])[0];
+  const arb     = await fetch('/api/arbitrage').then(r=>r.json()).then(d=>d.items||[]).catch(()=>[]);
+  const topArb  = arb[0];
+  const alerts  = store.alerts.length;
+
+  const ticks = [
+    {type:'PRODUCTS', val:`${prods.length.toLocaleString()} total`, cls:'neu'},
+    {type:'AVG PRICE', val:`PKR ${avg.toLocaleString()}`, cls:'neu'},
+    {type:'TOP PLATFORM', val:topSrc?`${topSrc[0]} (${topSrc[1]})`:'-', cls:'neu'},
+    {type:'DISCOUNTS 40%+', val:`${discs.length} deals`, cls:'up'},
+    topArb ? {type:'ARBITRAGE', val:`${topArb.name.slice(0,25)}… PKR ${Math.round(topArb.saving_abs).toLocaleString()} gap`, cls:'warn', detail:topArb} : null,
+    {type:'ALERTS', val:`${alerts} active alerts`, cls:alerts>0?'warn':'neu'},
+    {type:'UNIQUE BRANDS', val:`${[...new Set(prods.map(p=>p.brand_classified).filter(b=>b&&b!=='Other'))].length} brands`, cls:'neu'},
+    {type:'SOURCES LIVE', val:`${Object.keys(srcC).length} / 5 platforms`, cls:'up'},
+  ].filter(Boolean);
+
+  // Duplicate for seamless loop
+  const all = [...ticks, ...ticks];
+  const track = document.getElementById('ticker-track');
+  track.innerHTML = all.map((t,i) => `
+    <div class="tick" onclick="expandTicker(${i%ticks.length})">
+      <div><div class="tick-type">${t.type}</div><div class="tick-val ${t.cls}">${t.val}</div></div>
+    </div>`).join('');
+}
+function expandTicker(i) { /* future: show detail panel */ }
+
+// ═══════════════════════════════════════════════════════════════════
+// SESSION REPORT
+// ═══════════════════════════════════════════════════════════════════
+function showSessionReport(entry) {
+  const ins = entry.session_insights || {};
+  const el = document.getElementById('session-report');
+  const grid = document.getElementById('sr-grid');
+  el.classList.add('show');
+  grid.innerHTML = [
+    {l:'Scraped', v:(entry.stats?.scraped||0).toLocaleString()},
+    {l:'New', v:(entry.stats?.new||0).toLocaleString()},
+    {l:'Avg Price', v:ins.avg_price?`PKR ${(+ins.avg_price).toLocaleString()}`:'—'},
+    {l:'Median Price', v:ins.med_price?`PKR ${(+ins.med_price).toLocaleString()}`:'—'},
+    {l:'Avg Discount', v:ins.avg_disc?`${ins.avg_disc}%`:'—'},
+    {l:'Top Category', v:ins.top_cat||'—'},
+    {l:'Platforms', v:(entry.stats?.sites_done||[]).length+'/5'},
+  ].map(s=>`<div class="sr-stat"><div class="sr-stat-l">${s.l}</div><div class="sr-stat-v">${s.v}</div></div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STATUS / KPI HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function setSt(msg, type='') {
+  document.getElementById('st-msg').textContent = msg;
+  document.getElementById('st-dot').className = 'st-dot '+type;
+}
+function dc(k) { if(store.charts[k]){store.charts[k].destroy();delete store.charts[k];} }
+const CO = {
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{labels:{color:'#475569',font:{family:'IBM Plex Mono',size:10},padding:8}}},
+  scales:{x:{ticks:{color:'#475569',font:{family:'IBM Plex Mono',size:9}},grid:{color:'#1c2035'}},
+          y:{ticks:{color:'#475569',font:{family:'IBM Plex Mono',size:9}},grid:{color:'#1c2035'}}}
+};
+const NO_LEG = {...CO, plugins:{...CO.plugins, legend:{display:false}}};
+
+// ═══════════════════════════════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════════════════════════════
+function buildOverview() {
+  const products = filteredProducts();
+  if (!products.length) return;
+
+  const prices  = products.map(p=>p.price_pkr).filter(Boolean);
+  const ratings = products.map(p=>p.rating).filter(r=>r>0);
+  const discV   = products.map(p=>{const m=(p.discount||'').match(/(\d+)/);return m?+m[1]:null;}).filter(Boolean);
+  const avg     = prices.length?Math.round(prices.reduce((a,b)=>a+b,0)/prices.length):0;
+  const sorted  = [...prices].sort((a,b)=>a-b);
+  const med     = sorted.length?sorted[Math.floor(sorted.length/2)]:0;
+
+  // KPIs
+  document.getElementById('k-total').textContent   = products.length.toLocaleString();
+  document.getElementById('k-ds').textContent      = `${Object.keys(store.datasets).length} datasets`;
+  document.getElementById('k-sellers').textContent = [...new Set(products.map(p=>p.seller_name).filter(s=>s&&s!=='N/A'))].length;
+  document.getElementById('k-avg').textContent     = avg?`${(avg/1000).toFixed(1)}K`:'—';
+  document.getElementById('k-med').textContent     = med?`median ${med.toLocaleString()}`:'';
+  document.getElementById('k-range').textContent   = prices.length?`${Math.round(Math.min(...prices)).toLocaleString()} – ${Math.round(Math.max(...prices)).toLocaleString()}`:'—';
+  document.getElementById('k-disc').textContent    = products.length?`${(discV.length/products.length*100).toFixed(1)}%`:'0%';
+  document.getElementById('k-adsc').textContent    = discV.length?`avg ${(discV.reduce((a,b)=>a+b,0)/discV.length).toFixed(1)}% off`:'';
+  document.getElementById('k-rat').textContent     = ratings.length?(ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1):'—';
+
+  // Buckets
+  const pb={"<1K":0,"1K-5K":0,"5K-15K":0,"15K-50K":0,"50K+":0};
+  prices.forEach(p=>{if(p<1000)pb["<1K"]++;else if(p<5000)pb["1K-5K"]++;else if(p<15000)pb["5K-15K"]++;else if(p<50000)pb["15K-50K"]++;else pb["50K+"]++;});
+
+  const srcC={};products.forEach(p=>{const s=p.source||'?';srcC[s]=(srcC[s]||0)+1;});
+  const selC={};products.forEach(p=>{if(p.seller_name&&p.seller_name!=='N/A')selC[p.seller_name]=(selC[p.seller_name]||0)+1;});
+  const catC={};products.forEach(p=>{const c=p.category_classified||(p.category_path||'?').split('>')[0].trim();if(c&&c!=='N/A')catC[c]=(catC[c]||0)+1;});
+  const brC={};products.forEach(p=>{const b=p.brand_classified;if(b&&b!=='Other'&&b!=='N/A'&&b)brC[b]=(brC[b]||0)+1;});
+  const topS=Object.entries(selC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const topC=Object.entries(catC).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const topB=Object.entries(brC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const rBins=[0,1,2,3,4,5].map(r=>products.filter(p=>Math.floor(p.rating||0)===r).length);
+
+  dc('ch-price');
+  store.charts['ch-price']=new Chart(document.getElementById('ch-price'),{type:'bar',data:{labels:Object.keys(pb),datasets:[{data:Object.values(pb),backgroundColor:'#1a56db33',borderColor:'#3b82f6',borderWidth:1}]},options:{...NO_LEG,responsive:true,maintainAspectRatio:false}});
+
+  dc('ch-source');
+  const srcKeys=Object.keys(srcC);
+  store.charts['ch-source']=new Chart(document.getElementById('ch-source'),{type:'doughnut',data:{labels:srcKeys,datasets:[{data:srcKeys.map(s=>srcC[s]),backgroundColor:srcKeys.map(s=>SITE_COLORS[s]||'#888'),borderColor:'#080b12',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#475569',font:{family:'IBM Plex Mono',size:10},padding:6}}}}});
+
+  dc('ch-sellers');
+  store.charts['ch-sellers']=new Chart(document.getElementById('ch-sellers'),{type:'bar',data:{labels:topS.map(x=>x[0].slice(0,14)),datasets:[{data:topS.map(x=>x[1]),backgroundColor:'#22c55e22',borderColor:'#22c55e',borderWidth:1}]},options:{...NO_LEG,indexAxis:'y',responsive:true,maintainAspectRatio:false}});
+
+  dc('ch-cats');
+  store.charts['ch-cats']=new Chart(document.getElementById('ch-cats'),{type:'doughnut',data:{labels:topC.map(x=>x[0]),datasets:[{data:topC.map(x=>x[1]),backgroundColor:PAL,borderColor:'#080b12',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#475569',font:{family:'IBM Plex Mono',size:10},padding:5}}}}});
+
+  dc('ch-brands');
+  store.charts['ch-brands']=new Chart(document.getElementById('ch-brands'),{type:'bar',data:{labels:topB.map(x=>x[0]),datasets:[{data:topB.map(x=>x[1]),backgroundColor:'#eab30822',borderColor:'#eab308',borderWidth:1}]},options:{...NO_LEG,indexAxis:'y',responsive:true,maintainAspectRatio:false}});
+
+  dc('ch-rating');
+  store.charts['ch-rating']=new Chart(document.getElementById('ch-rating'),{type:'bar',data:{labels:['★0','★1','★2','★3','★4','★5'],datasets:[{data:rBins,backgroundColor:'#8b5cf622',borderColor:'#8b5cf6',borderWidth:1}]},options:{...NO_LEG,responsive:true,maintainAspectRatio:false}});
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PRODUCTS TABLE
+// ═══════════════════════════════════════════════════════════════════
+function applyFilters() {
+  const q   = (document.getElementById('srch')?.value||'').toLowerCase();
+  const minP= parseFloat(document.getElementById('fp-min')?.value)||0;
+  const maxP= parseFloat(document.getElementById('fp-max')?.value)||Infinity;
+  const minR= parseFloat(document.getElementById('fp-rat')?.value)||0;
+  const minD= parseInt(document.getElementById('fp-disc')?.value)||0;
+  const src = document.getElementById('fp-src')?.value||'';
+  let base  = store.dsFilter?(store.datasets[store.dsFilter]||[]):store.allFlat;
+  store.filtered = base.filter(p => {
+    if(src&&p.source!==src) return false;
+    if(p.price_pkr!=null&&(p.price_pkr<minP||p.price_pkr>maxP)) return false;
+    if(p.rating<minR) return false;
+    const dv=parseInt((p.discount||'').replace('%',''))||0;if(dv<minD) return false;
+    if(q){const h=[p.name,p.seller_name,p.brand_classified,p.category_classified,p.source,p.query].join(' ').toLowerCase();if(!h.includes(q))return false;}
+    return true;
+  });
+  if(store.sortCol){
+    store.filtered.sort((a,b)=>{let av=a[store.sortCol],bv=b[store.sortCol];if(typeof av==='string')av=av.toLowerCase();if(typeof bv==='string')bv=bv.toLowerCase();return av<bv?-store.sortDir:av>bv?store.sortDir:0;});
+  }
+  store.page=1; renderTable();
+  document.getElementById('res-count').textContent=`${store.filtered.length.toLocaleString()} results`;
+}
+
+const COLS=[{l:'Product',k:'name'},{l:'Price',k:'price_pkr'},{l:'Brand',k:'brand_classified'},{l:'Category',k:'category_classified'},{l:'Seller',k:'seller_name'},{l:'Rating',k:'rating'},{l:'Platform',k:'source'},{l:'',k:null}];
+function sortBy(c){if(store.sortCol===c)store.sortDir*=-1;else{store.sortCol=c;store.sortDir=1;}applyFilters();}
+
+function renderTable() {
+  const {filtered,page,perPage}=store;
+  if(!filtered.length){
+    document.getElementById('tbl-area').innerHTML=store.allFlat.length?'<div class="empty"><div class="empty-ico">🔍</div><div class="empty-t">No matches</div><div class="empty-s">Try adjusting filters</div></div>':'<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">No data yet</div><div class="empty-s">Run an intelligence scan first</div></div>';
+    document.getElementById('pager').style.display='none'; return;
+  }
+  const slice=filtered.slice((page-1)*perPage,page*perPage);
+  const thead=COLS.map(c=>{if(!c.k)return'<th></th>';const s=store.sortCol===c.k;return`<th class="${s?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}${s?(store.sortDir===1?' ↑':' ↓'):''}</th>`;}).join('');
+  const rows=slice.map(p=>{
+    const ps=p.price_pkr?`PKR ${p.price_pkr.toLocaleString()}`:'N/A';
+    const po=(p.original_price_pkr&&p.original_price_pkr!==p.price_pkr)?`<div class="price-o">${p.original_price_pkr.toLocaleString()}</div>`:'';
+    const pd=p.discount?`<div class="disc-tag">${p.discount}</div>`:'';
+    const stars=p.rating>0?`<span class="stars">${'★'.repeat(Math.round(p.rating))}${'☆'.repeat(5-Math.round(p.rating))}</span> <small style="font-family:var(--mono);color:var(--t3)">${p.rating.toFixed(1)}</small>`:'—';
+    const srcCol=SITE_COLORS[p.source]||'#888';
+    return`<tr id="r-${p.item_id}">
+      <td><div class="pc">${p.image_url?`<img class="pimg" src="${p.image_url}" loading="lazy" onerror="this.style.display='none'"/>`:''}
+        <span class="pname" title="${p.name}">${p.name}</span></div></td>
+      <td><div class="price-m">${ps}</div>${po}${pd}</td>
+      <td style="font-family:var(--mono);font-size:.7rem">${p.brand_classified||p.brand_supplier||'—'}</td>
+      <td style="font-size:.72rem;color:var(--t2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.category_classified||'—'}</td>
+      <td style="font-size:.72rem">${p.seller_name||'—'}</td>
+      <td>${stars}</td>
+      <td><span class="src-tag" style="border-color:${srcCol};color:${srcCol}">${p.source||'?'}</span></td>
+      <td style="white-space:nowrap">${p.product_url?`<a class="link-a" href="${p.product_url}" target="_blank">↗</a> `:''}<button class="sp-btn ${p.details_fetched?'done':''}" onclick="toggleDet('${p.item_id}',this)">${p.details_fetched?'✓':'Detail'}</button></td>
+    </tr>
+    <tr id="det-${p.item_id}" style="display:none"><td colspan="8"><div class="det-g">
+      <div><div class="det-sec">Description</div><div class="desc-txt" id="desc-${p.item_id}">${p.description||'<span style="color:var(--t3)">Click Detail to load…</span>'}</div></div>
+      <div><div class="det-sec">Specifications</div><div id="spec-${p.item_id}">${rSpecs(p.specifications)}</div></div>
+      <div><div class="det-sec">Reviews (${p.reviews_list?.length||0})</div><div id="rev-${p.item_id}">${rRevs(p.reviews_list)}</div></div>
+    </div></td></tr>`;
+  }).join('');
+  document.getElementById('tbl-area').innerHTML=`<div class="tbl-wrap"><table><thead><tr>${thead}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  renderPager(filtered.length);
+}
+function rSpecs(s){if(!s||!Object.keys(s).length)return'<span style="font-family:var(--mono);font-size:.68rem;color:var(--t3)">No specs yet.</span>';return`<table class="sp-tbl">${Object.entries(s).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>`;}
+function rRevs(r){if(!r?.length)return'<span style="font-family:var(--mono);font-size:.68rem;color:var(--t3)">No reviews loaded.</span>';return r.map(x=>`<div class="rev-item"><div class="stars" style="font-size:.65rem">${'★'.repeat(x.rating||0)}</div><div>${x.text}</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--t3);margin-top:3px">${x.author||''}</div></div>`).join('');}
+async function toggleDet(id,btn){
+  const det=document.getElementById('det-'+id);
+  if(det.style.display!=='none'){det.style.display='none';return;}
+  det.style.display='';
+  const p=store.allFlat.find(x=>x.item_id===id);if(p?.details_fetched)return;
+  btn.textContent='…';
+  try{
+    const data=await fetch('/api/product/details',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({item_id:id})}).then(r=>r.json());
+    if(data.error){document.getElementById('desc-'+id).textContent=data.error;return;}
+    const idx=store.allFlat.findIndex(x=>x.item_id===id);if(idx>=0)store.allFlat[idx]=data;
+    document.getElementById('desc-'+id).textContent=data.description||'No description.';
+    document.getElementById('spec-'+id).innerHTML=rSpecs(data.specifications);
+    document.getElementById('rev-'+id).innerHTML=rRevs(data.reviews_list);
+    btn.textContent='✓';btn.classList.add('done');
+  }catch(e){btn.textContent='Detail';}
+}
+function renderPager(total){
+  const pages=Math.ceil(total/store.perPage);const pg=document.getElementById('pager');
+  if(pages<=1){pg.style.display='none';return;}
+  pg.style.display='flex';
+  document.getElementById('pg-info').textContent=`Page ${store.page}/${pages} · ${total.toLocaleString()} results`;
+  document.getElementById('pg-btns').innerHTML=Array.from({length:Math.min(pages,8)},(_,i)=>i+1).map(i=>`<div class="pg-btn${i===store.page?' active':''}" onclick="goPage(${i})">${i}</div>`).join('');
+}
+function goPage(n){store.page=n;renderTable();}
+
+// ═══════════════════════════════════════════════════════════════════
+// EXPORTS
+// ═══════════════════════════════════════════════════════════════════
+async function exportCSV(){const r=await fetch('/api/export/csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:store.dsFilter||''})});dl(await r.blob(),'pip_export.csv');}
+async function exportJSON(){const r=await fetch('/api/export/json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:store.dsFilter||''})});dl(await r.blob(),'pip_export.json');}
+function dl(b,n){const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;a.click();URL.revokeObjectURL(u);}
+
+// ═══════════════════════════════════════════════════════════════════
+// AI INSIGHTS
+// ═══════════════════════════════════════════════════════════════════
+const AI_P = {
+  summary:      s=>`You are a senior market analyst for Pakistani e-commerce. Analyse this multi-platform data and provide a sharp executive summary.\n\nDATA:\n${s}\n\nDeliver: 1) Market overview across platforms 2) Key price findings 3) Dominant players 4) Notable trends. Be data-specific with PKR figures.`,
+  pricing:      s=>`Pricing strategist for Pakistan e-commerce.\n\nDATA:\n${s}\n\n1) Price band analysis per platform 2) Cheapest vs most expensive platforms 3) Discount strategy patterns 4) Price positioning recommendations. Cite PKR figures.`,
+  sellers:      s=>`Competitive intelligence analyst.\n\nDATA:\n${s}\n\n1) Market concentration assessment 2) Top seller profiles 3) Brand vs grey-market presence 4) Platform-specific seller dynamics 5) Supply chain risk indicators.`,
+  opportunities:s=>`Business strategy consultant.\n\nDATA:\n${s}\n\nIdentify: 1) Underserved price segments 2) Category white spaces 3) Platform-specific opportunities 4) Actionable entry points with clear rationale.`,
+  crossplatform:s=>`Cross-platform intelligence analyst.\n\nDATA:\n${s}\n\nCompare each platform: 1) Price differences 2) Product availability 3) Brand mix 4) Rating quality 5) Arbitrage opportunities 6) Which platform delivers best value by category.`,
+  report:       s=>`Senior market research analyst. Write a comprehensive Pakistan e-commerce market report.\n\nDATA:\n${s}\n\nStructure: EXECUTIVE SUMMARY | PLATFORM ANALYSIS | PRICING INTELLIGENCE | BRAND & SUPPLIER LANDSCAPE | CATEGORY INSIGHTS | CROSS-PLATFORM COMPARISON | MARKET GAPS | RISKS & OPPORTUNITIES | STRATEGIC RECOMMENDATIONS`,
+};
+function saveApiKey(){
+  const k=document.getElementById('ai-key').value.trim();
+  store.apiKey=k; localStorage.setItem('pip_api_key',k);
+  fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:k})});
+  setSt(k?'API key saved':'API key cleared','ok');
+}
+async function runAI(type){
+  if(!store.apiKey){document.getElementById('ai-out').textContent='❌ Please enter your Anthropic API key above.';return;}
+  if(!store.allFlat.length){document.getElementById('ai-out').textContent='❌ No data to analyse. Run a scan first.';return;}
+  const out=document.getElementById('ai-out');
+  out.textContent=''; document.querySelectorAll('.ai-btn').forEach(b=>b.disabled=true);
+  setSt('Generating AI analysis…','busy');
+  const cursor=document.createElement('span');cursor.className='ai-cursor';out.appendChild(cursor);
+  try{
+    const summary=await fetch('/api/insights/summary').then(r=>r.json());
+    const res=await fetch('/api/ai/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:AI_P[type](JSON.stringify(summary,null,2)),api_key:store.apiKey})});
+    if(!res.ok){const e=await res.json();out.textContent='Error: '+(e.error||res.status);return;}
+    const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data:'))continue;
+        const raw=line.slice(5).trim();if(raw==='[DONE]')continue;
+        try{const e=JSON.parse(raw);if(e.type==='content_block_delta'&&e.delta?.type==='text_delta')out.insertBefore(document.createTextNode(e.delta.text),cursor);}catch{}
+      }
+    }
+    cursor.remove();setSt('Analysis complete','ok');
+  }catch(e){cursor.remove();out.textContent=`Error: ${e.message}`;setSt('AI error','err');}
+  finally{document.querySelectorAll('.ai-btn').forEach(b=>b.disabled=false);}
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUPPLIER INTEL
+// ═══════════════════════════════════════════════════════════════════
+async function loadSupplier(){
+  if(!store.allFlat.length){return;}
+  const site=document.getElementById('sup-site')?.value||'';
+  const cat =document.getElementById('sup-cat')?.value||'';
+  const brand=document.getElementById('sup-brand')?.value||'';
+  const url=`/api/supplier-intel?site=${encodeURIComponent(site)}&category=${encodeURIComponent(cat)}&brand=${encodeURIComponent(brand)}`;
+  const data=await fetch(url).then(r=>r.json()).catch(()=>({suppliers:[]}));
+  const sups=data.suppliers||[];
+  if(!sups.length){document.getElementById('sup-area').innerHTML='<div class="empty"><div class="empty-ico">🏪</div><div class="empty-t">No suppliers match filters</div></div>';return;}
+  const head=`<tr><th>Supplier / Seller</th><th>Platform</th><th>Products</th><th>Avg Price</th><th>Price Range</th><th>Avg Rating</th><th>Brands</th><th>Quality Score</th><th>Risk</th></tr>`;
+  const rows=sups.map(s=>{
+    const qp=s.quality_score;const qCls=qp>=65?'':'quality-fill '+(qp>=40?'med':'low');
+    return`<tr>
+      <td style="font-weight:500">${s.name}</td>
+      <td><span class="src-tag" style="border-color:${SITE_COLORS[s.source]||'#888'};color:${SITE_COLORS[s.source]||'#888'}">${s.source}</span></td>
+      <td style="font-family:var(--mono)">${s.product_count}</td>
+      <td style="font-family:var(--mono);color:var(--cyan)">${s.avg_price?`PKR ${s.avg_price.toLocaleString()}`:'—'}</td>
+      <td style="font-family:var(--mono);font-size:.7rem;color:var(--t3)">${s.min_price?`${s.min_price.toLocaleString()} – ${s.max_price.toLocaleString()}`:'—'}</td>
+      <td style="font-family:var(--mono)">${s.avg_rating||'—'}</td>
+      <td style="font-size:.72rem;max-width:130px;overflow:hidden;text-overflow:ellipsis">${s.brands.join(', ')||'—'}</td>
+      <td>
+        <div style="font-family:var(--mono);font-size:.78rem">${s.quality_score}</div>
+        <div class="quality-bar"><div class="${qCls||'quality-fill'}" style="width:${s.quality_score}%"></div></div>
+      </td>
+      <td><span class="risk-badge risk-${s.risk}">${s.risk}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('sup-area').innerHTML=`<div class="tbl-wrap" style="max-height:65vh"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BRAND ANALYSIS
+// ═══════════════════════════════════════════════════════════════════
+function buildBrands(){
+  const prods=store.allFlat;if(!prods.length)return;
+  const bmap={};
+  prods.forEach(p=>{
+    const b=p.brand_classified;
+    if(!b||b==='Other'||b==='N/A'||b==='') return;
+    if(!bmap[b])bmap[b]={count:0,prices:[],sites:new Set(),cats:new Set()};
+    bmap[b].count++;
+    if(p.price_pkr)bmap[b].prices.push(p.price_pkr);
+    if(p.source)bmap[b].sites.add(p.source);
+    if(p.category_classified)bmap[b].cats.add(p.category_classified);
+  });
+  const sorted=Object.entries(bmap).sort((a,b)=>b[1].count-a[1].count).slice(0,20);
+  if(!sorted.length){document.getElementById('brand-tbl-area').innerHTML='<div class="empty"><div class="empty-ico">🏷️</div><div class="empty-t">No recognised brands detected</div><div class="empty-s">Run a scan on branded product queries</div></div>';return;}
+  const maxC=sorted[0][1].count;
+
+  // Table
+  const rows=sorted.map(([name,d])=>{
+    const avg=d.prices.length?Math.round(d.prices.reduce((a,b)=>a+b,0)/d.prices.length):0;
+    const pct=Math.round(d.count/maxC*100);
+    const srcDots=[...d.sites].map(s=>`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${SITE_COLORS[s]||'#888'};margin-right:3px" title="${s}"></span>`).join('');
+    return`<tr>
+      <td style="font-weight:500;font-size:.82rem">${name}</td>
+      <td style="font-family:var(--mono)">${d.count.toLocaleString()}</td>
+      <td style="font-family:var(--mono);color:var(--cyan)">${avg?`PKR ${avg.toLocaleString()}`:'—'}</td>
+      <td>${srcDots}</td>
+      <td style="font-size:.7rem;color:var(--t3)">${[...d.cats].slice(0,2).join(', ')||'—'}</td>
+      <td style="min-width:100px"><div style="height:4px;background:var(--b1)"><div style="height:100%;background:var(--blue-l);width:${pct}%"></div></div></td>
+    </tr>`;
+  }).join('');
+  const head='<tr><th>Brand</th><th>Products</th><th>Avg Price</th><th>Platforms</th><th>Categories</th><th>Share</th></tr>';
+  document.getElementById('brand-tbl-area').innerHTML=`<div class="tbl-wrap" style="max-height:50vh"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
+
+  // Charts
+  const top8=sorted.slice(0,8);
+  dc('ch-brand-share');
+  store.charts['ch-brand-share']=new Chart(document.getElementById('ch-brand-share'),{type:'doughnut',data:{labels:top8.map(x=>x[0]),datasets:[{data:top8.map(x=>x[1].count),backgroundColor:PAL,borderColor:'#080b12',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#475569',font:{family:'IBM Plex Mono',size:10},padding:5}}}}});
+  const withP=sorted.filter(x=>x[1].prices.length).slice(0,10);
+  dc('ch-brand-price');
+  store.charts['ch-brand-price']=new Chart(document.getElementById('ch-brand-price'),{type:'bar',data:{labels:withP.map(x=>x[0]),datasets:[{data:withP.map(x=>Math.round(x[1].prices.reduce((a,b)=>a+b,0)/x[1].prices.length)),backgroundColor:'#eab30822',borderColor:'#eab308',borderWidth:1}]},options:{...NO_LEG,responsive:true,maintainAspectRatio:false}});
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// COMPARATIVE
+// ═══════════════════════════════════════════════════════════════════
+function populateCmpSelects(){
+  const opts='<option value="">Select dataset…</option>'+Object.keys(store.datasets).map(k=>`<option value="${k}">${k}</option>`).join('');
+  document.getElementById('cmp-a').innerHTML=opts;
+  document.getElementById('cmp-b').innerHTML=opts;
+}
+async function loadCompare(){
+  const a=document.getElementById('cmp-a').value;const b=document.getElementById('cmp-b').value;
+  if(!a||!b)return;
+  const data=await fetch(`/api/insights/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`).then(r=>r.json());
+  const ai=data.a.insights;const bi=data.b.insights;
+  function row(lbl,av,bv,low=false){
+    const af=parseFloat(av)||0,bf=parseFloat(bv)||0;
+    const aC=af>bf?(low?'worse':'better'):(af<bf?(low?'better':'worse'):'');
+    const bC=bf>af?(low?'worse':'better'):(bf<af?(low?'better':'worse'):'');
+    const fmt=v=>typeof v==='number'?v.toLocaleString():v||'—';
+    return`<div class="cmp-row"><span class="cmp-lbl">${lbl}</span><div style="display:flex;gap:16px"><span class="cmp-v ${aC}">${fmt(av)}</span><span class="cmp-v ${bC}">${fmt(bv)}</span></div></div>`;
+  }
+  document.getElementById('cmp-area').innerHTML=`<div class="cmp-grid">
+    <div class="cmp-card"><div class="cmp-title">${a.split('::').join(' · ')}</div>
+      ${row('Products',ai.total,bi.total)}${row('Avg Price PKR',ai.price_avg,bi.price_avg,true)}
+      ${row('Min Price',ai.price_min,bi.price_min,true)}${row('Avg Rating',ai.avg_rating,bi.avg_rating)}
+      ${row('% Discounted',ai.pct_discounted,bi.pct_discounted)}${row('Avg Discount',ai.avg_discount,bi.avg_discount)}
+      ${row('Unique Sellers',ai.unique_sellers,bi.unique_sellers)}${row('Unique Brands',ai.unique_brands,bi.unique_brands)}</div>
+    <div class="cmp-card"><div class="cmp-title">${b.split('::').join(' · ')}</div>
+      ${row('Products',bi.total,ai.total)}${row('Avg Price PKR',bi.price_avg,ai.price_avg,true)}
+      ${row('Min Price',bi.price_min,ai.price_min,true)}${row('Avg Rating',bi.avg_rating,ai.avg_rating)}
+      ${row('% Discounted',bi.pct_discounted,ai.pct_discounted)}${row('Avg Discount',bi.avg_discount,ai.avg_discount)}
+      ${row('Unique Sellers',bi.unique_sellers,ai.unique_sellers)}${row('Unique Brands',bi.unique_brands,ai.unique_brands)}</div>
+  </div>`;
+
+  // Comparison charts
+  const pa=store.datasets[a]||[];const pb=store.datasets[b]||[];
+  const bkts=["<1K","1K-5K","5K-15K","15K-50K","50K+"];
+  function getBkt(prods){const r={};bkts.forEach(b=>r[b]=0);prods.forEach(p=>{if(!p.price_pkr)return;if(p.price_pkr<1000)r["<1K"]++;else if(p.price_pkr<5000)r["1K-5K"]++;else if(p.price_pkr<15000)r["5K-15K"]++;else if(p.price_pkr<50000)r["15K-50K"]++;else r["50K+"]++;});return r;}
+  const ba=getBkt(pa);const bb=getBkt(pb);
+  document.getElementById('cmp-charts').style.display='grid';
+  dc('ch-cmp-price');
+  store.charts['ch-cmp-price']=new Chart(document.getElementById('ch-cmp-price'),{type:'bar',data:{labels:bkts,datasets:[{label:a.split('::')[1]||a,data:bkts.map(k=>ba[k]),backgroundColor:'#3b82f633',borderColor:'#3b82f6',borderWidth:1},{label:b.split('::')[1]||b,data:bkts.map(k=>bb[k]),backgroundColor:'#22c55e33',borderColor:'#22c55e',borderWidth:1}]},options:{...CO,responsive:true,maintainAspectRatio:false}});
+
+  // Category overlap
+  const catA={};pa.forEach(p=>{const c=p.category_classified||'?';catA[c]=(catA[c]||0)+1;});
+  const catB={};pb.forEach(p=>{const c=p.category_classified||'?';catB[c]=(catB[c]||0)+1;});
+  const allCats=[...new Set([...Object.keys(catA),...Object.keys(catB)])].slice(0,8);
+  dc('ch-cmp-cats');
+  store.charts['ch-cmp-cats']=new Chart(document.getElementById('ch-cmp-cats'),{type:'bar',data:{labels:allCats,datasets:[{label:a.split('::')[1]||a,data:allCats.map(c=>catA[c]||0),backgroundColor:'#3b82f633',borderColor:'#3b82f6',borderWidth:1},{label:b.split('::')[1]||b,data:allCats.map(c=>catB[c]||0),backgroundColor:'#22c55e33',borderColor:'#22c55e',borderWidth:1}]},options:{...CO,indexAxis:'y',responsive:true,maintainAspectRatio:false}});
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARKET GAPS
+// ═══════════════════════════════════════════════════════════════════
+async function buildGaps(){
+  if(!store.allFlat.length)return;
+  const data=await fetch('/api/market-gaps').then(r=>r.json()).catch(()=>({gaps:[]}));
+  const gaps=data.gaps||[];
+  if(!gaps.length){document.getElementById('gap-grid').innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ico">🔭</div><div class="empty-t">No gaps identified</div><div class="empty-s">Scrape more diverse product categories</div></div>';return;}
+  document.getElementById('gap-grid').innerHTML=gaps.slice(0,12).map(g=>`
+    <div class="gap-card opp-${g.opportunity}">
+      <div class="gap-cat">${g.category}</div>
+      <div class="gap-range">${g.price_range}</div>
+      <div class="gap-stats">
+        <div class="gap-stat">Products <span>${g.count}</span></div>
+        <div class="gap-stat">Platforms <span>${g.site_coverage}/${g.total_sites}</span></div>
+        <div class="gap-stat">Avg Rating <span>${g.avg_rating}</span></div>
+        <div class="gap-stat">Gap Score <span>${g.gap_score}</span></div>
+      </div>
+      <span class="opp-badge opp-${g.opportunity}">${g.opportunity} OPPORTUNITY</span>
+    </div>`).join('');
+
+  // Gap score chart
+  const top10=gaps.slice(0,10);
+  dc('ch-gaps');
+  store.charts['ch-gaps']=new Chart(document.getElementById('ch-gaps'),{
+    type:'bar',
+    data:{labels:top10.map(g=>`${g.category} · ${g.price_range}`),datasets:[{label:'Gap Score',data:top10.map(g=>g.gap_score),backgroundColor:top10.map(g=>g.opportunity==='HIGH'?'#22c55e33':g.opportunity==='MEDIUM'?'#eab30833':'#47556933'),borderColor:top10.map(g=>g.opportunity==='HIGH'?'#22c55e':g.opportunity==='MEDIUM'?'#eab308':'#475569'),borderWidth:1}]},
+    options:{...NO_LEG,indexAxis:'y',responsive:true,maintainAspectRatio:false}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ARBITRAGE
+// ═══════════════════════════════════════════════════════════════════
+async function buildArbitrage(){
+  if(!store.allFlat.length)return;
+  const data=await fetch('/api/arbitrage').then(r=>r.json()).catch(()=>({items:[]}));
+  const items=data.items||[];
+  if(!items.length){document.getElementById('arb-area').innerHTML='<div class="empty"><div class="empty-ico">💹</div><div class="empty-t">No arbitrage opportunities found</div><div class="empty-s">Scrape the same queries across multiple platforms</div></div>';return;}
+  document.getElementById('arb-area').innerHTML=items.map((item,i)=>{
+    const sites=Object.entries(item.sites||{}).sort((a,b)=>a[1]-b[1]);
+    const low=sites[0];const high=sites[sites.length-1];
+    return`<div class="arb-item" onclick="toggleArb(${i})">
+      <div class="arb-name">
+        <span>${item.name}</span>
+        <span class="arb-saving">PKR ${Math.round(item.saving_abs).toLocaleString()} gap (${item.saving_pct}%)</span>
+      </div>
+      <div class="arb-sites">
+        ${sites.map(([s,p])=>`<span class="arb-site ${s===low[0]?'best':s===high[0]?'worst':''}" style="border-color:${SITE_COLORS[s]||'#888'}"><span style="color:${SITE_COLORS[s]||'#888'}">${s}</span>: PKR ${p.toLocaleString()}</span>`).join('')}
+      </div>
+      <div class="arb-detail" id="arbd-${i}">
+        <div class="alert-detail-row"><span>Lowest price</span><span style="color:var(--grn)">${low[0]} — PKR ${low[1].toLocaleString()}</span></div>
+        <div class="alert-detail-row"><span>Highest price</span><span style="color:var(--red)">${high[0]} — PKR ${high[1].toLocaleString()}</span></div>
+        <div class="alert-detail-row"><span>Saving</span><span>PKR ${Math.round(item.saving_abs).toLocaleString()} (${item.saving_pct}%)</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleArb(i){const el=document.getElementById('arbd-'+i);el.classList.toggle('open');}
+
+// ═══════════════════════════════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════════════════════════════
+async function fetchAlerts(){
+  const d=await fetch('/api/alerts').then(r=>r.json()).catch(()=>({alerts:[]}));
+  store.alerts=d.alerts||[];
+  document.getElementById('alerts-count').textContent=store.alerts.length;
+  renderAlerts();
+}
+function renderAlerts(){
+  const el=document.getElementById('alerts-body');
+  if(!store.alerts.length){el.innerHTML='<div class="empty" style="border:none;padding:20px"><div class="empty-ico">🔔</div><div class="empty-t">No alerts</div></div>';return;}
+  el.innerHTML=store.alerts.map((a,i)=>`
+    <div class="alert-card" onclick="toggleAlertDetail(${i})">
+      <div class="alert-type ${a.type==='arbitrage'?'arbitrage':'discount'}">${a.type.replace('_',' ').toUpperCase()}</div>
+      <div class="alert-title">${a.title}</div>
+      <div class="alert-body">${a.body}</div>
+      ${a.site?`<div class="alert-ts">${a.site} · ${a.ts}</div>`:`<div class="alert-ts">${a.ts}</div>`}
+      <div class="alert-detail" id="ald-${i}">
+        ${a.price?`<div class="alert-detail-row"><span>Price</span><span>PKR ${a.price.toLocaleString()}</span></div>`:''}
+        ${a.disc?`<div class="alert-detail-row"><span>Discount</span><span>${a.disc}%</span></div>`:''}
+        ${a.saving_pct?`<div class="alert-detail-row"><span>Saving</span><span>${a.saving_pct}%</span></div>`:''}
+        ${a.url?`<div class="alert-detail-row"><a class="link-a" href="${a.url}" target="_blank">View Product →</a></div>`:''}
+      </div>
+    </div>`).join('');
+}
+function toggleAlertDetail(i){document.getElementById('ald-'+i).classList.toggle('open');}
+function toggleAlerts(){document.getElementById('alerts-panel').classList.toggle('open');}
+
+// ═══════════════════════════════════════════════════════════════════
+// ACTIVITY LOG PANEL
+// ═══════════════════════════════════════════════════════════════════
+async function loadActLog(){
+  const el = document.getElementById('act-panel-body');
+  if (!el) return;
+
+  // Always fetch live scan status first
+  const scan = await fetch('/api/scan/status').then(r=>r.json()).catch(()=>null);
+  const d    = await fetch('/api/activity-log').then(r=>r.json()).catch(()=>({log:[]}));
+  const log  = d.log || [];
+
+  let html = '';
+
+  // ── Live scan steps (shown at top when running) ──
+  if (scan?.running || (scan?.steps?.length && scan?.pct < 100)) {
+    const steps = (scan.steps || []).slice(-40);
+    html += `<div style="padding:8px 14px;background:var(--b0);border-bottom:1px solid var(--b1)">
+      <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-l);margin-bottom:5px">
+        ${scan.running ? '⟳ Live Scan: '+scan.queries?.[0] : '✓ Last Scan'}
+      </div>
+      ${steps.map(s=>`<div class="act-log-row ${s.level||'info'}">
+        <span class="act-log-t">${s.t}</span><span class="act-log-m">${s.msg}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // ── Completed session log ──
+  if (!log.length && !scan?.steps?.length) {
+    html += '<div style="padding:12px 14px;font-family:var(--mono);font-size:.7rem;color:var(--t3)">No activity yet. Run a scan to begin.</div>';
+  } else {
+    html += log.map(e => {
+      const sites = e.stats?.sites_done || [];
+      const siteIcons = sites.map(s => {
+        const col = SITE_COLORS[s] || '#888';
+        return `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${col};margin-right:2px"></span>`;
+      }).join('');
+      return `<div class="act-log-row ok" style="flex-direction:column;align-items:flex-start;gap:3px">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+          <span style="color:var(--t1);font-weight:500">"${e.query}"</span>
+          <span class="act-log-t">${e.ts||''}</span>
+        </div>
+        <div class="act-log-m">${e.stats?.new||0} new · ${e.stats?.dupes||0} dupes · ${sites.length} platforms</div>
+        <div>${siteIcons}${sites.join(', ')}</div>
+        ${e.stats?.errors?.length ? `<div style="color:var(--red);font-size:.65rem">${e.stats.errors.length} errors</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  el.innerHTML = html;
+  // Auto-scroll to bottom if running
+  if (scan?.running) el.scrollTop = el.scrollHeight;
+}
+function toggleActLog(){
+  const panel = document.getElementById('act-panel');
+  const isOpen = panel.classList.toggle('open');
+  if (isOpen) {
+    loadActLog();                       // refresh immediately on open
+    _actLogInterval = setInterval(loadActLog, 2000);  // refresh every 2s while open
+  } else {
+    clearInterval(_actLogInterval);
+  }
+}
+let _actLogInterval = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// SCHEDULER / SETTINGS
+// ═══════════════════════════════════════════════════════════════════
+function openSched(){document.getElementById('sched-modal').classList.add('open');refreshSched();}
+function closeSched(){document.getElementById('sched-modal').classList.remove('open');}
+async function refreshSched(){
+  const d=await fetch('/api/scheduler/status').then(r=>r.json()).catch(()=>({active:false}));
+  const btn=document.getElementById('sched-btn'),lbl=document.getElementById('sched-lbl');
+  if(d.active){btn.classList.add('on');lbl.textContent=`Live · ${d.jobs?.length||0} jobs`;document.getElementById('sched-stop').style.display='';document.getElementById('sched-start').style.display='none';}
+  else{btn.classList.remove('on');lbl.textContent='Scheduler';document.getElementById('sched-stop').style.display='none';document.getElementById('sched-start').style.display='';}
+}
+async function startSched(){
+  const qs=document.getElementById('sched-q').value.split(',').map(q=>q.trim()).filter(Boolean);
+  if(!qs.length){alert('Enter queries.');return;}
+  const jobs=qs.map(q=>({query:q,pages:parseInt(document.getElementById('sched-pages').value)}));
+  await fetch('/api/scheduler/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jobs,interval:parseInt(document.getElementById('sched-int').value)})});
+  closeSched();refreshSched();setSt('Scheduler started','ok');
+}
+async function stopSched(){await fetch('/api/scheduler/stop',{method:'POST'});closeSched();refreshSched();setSt('Scheduler stopped','');}
+function openSettings(){document.getElementById('settings-modal').classList.add('open');document.getElementById('set-key').value=store.apiKey;}
+function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
+function saveSettings(){
+  const k=document.getElementById('set-key').value.trim();
+  store.apiKey=k;localStorage.setItem('pip_api_key',k);
+  document.getElementById('ai-key').value=k;
+  fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:k})});
+  closeSettings();setSt('Settings saved','ok');
+}
+async function clearAll(){
+  if(!confirm('Clear all scraped data?'))return;
+  await fetch('/api/clear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+  store.datasets={};store.allFlat=[];store.filtered=[];
+  Object.keys(store.charts).forEach(k=>{store.charts[k].destroy();delete store.charts[k];});
+  renderDsList();buildSitePills();applyFilters();
+  document.getElementById('st-store').textContent='0 products';
+  setSt('Data cleared','');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TEST CONNECTION
+// ═══════════════════════════════════════════════════════════════════
+async function testConnections(){
+  const el=document.getElementById('wl-test-result');
+  el.style.display='block';el.textContent='⏳ Testing connections…';
+  const d=await fetch('/api/test').then(r=>r.json()).catch(()=>({}));
+  el.innerHTML=Object.entries(d).map(([s,r])=>`<div style="margin-bottom:4px">${r.ok?'<span style="color:var(--grn)">✓</span>':'<span style="color:var(--red)">✗</span>'} ${s} ${r.ok?`(HTTP ${r.status})`:r.error||'failed'}</div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// POLLING
+// ═══════════════════════════════════════════════════════════════════
+setInterval(async()=>{
+  const d=await fetch('/api/scheduler/status').then(r=>r.json()).catch(()=>({active:false}));
+  if(d.active){
+    await refreshDatasets();buildOverview();buildTickers();fetchAlerts();
+  }
+  refreshSched();
+},25000);
+setInterval(()=>{
+  const el=document.getElementById('st-time');
+  if(el)el.textContent=new Date().toLocaleTimeString();
+},1000);
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    ['settings-modal','sched-modal'].forEach(id=>document.getElementById(id).classList.remove('open'));
+    document.getElementById('act-panel').classList.remove('open');
+    document.getElementById('alerts-panel').classList.remove('open');
+  }
+});
+// Pre-fill API key if saved
+document.getElementById('ai-key').value = store.apiKey;
+if(store.apiKey){fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:store.apiKey})});}
+
+// ═══════════════════════════════════════════════════════════════════
+// LOADING FACTS PANEL
+// ═══════════════════════════════════════════════════════════════════
+const SITE_FACTS = {
+  "daraz.pk": {
+    color: "#f57224", tech: "Custom AJAX JSON API", per_page: 40,
+    facts: [
+      "Daraz embeds product JSON directly in page responses — no secondary API calls needed once the session cookie is warmed.",
+      "Exactly 40 products per page. Total pages = ⌈totalResults ÷ 40⌉. We verify with empty-page detection to avoid missing the last few pages.",
+      "Two price fields per product: current sale price and originalPrice. Discount % = ((original - current) / original) × 100.",
+      "Each product carries a seller city field — clustering by location reveals which regions dominate supply for a given search.",
+      "Daraz has moderate bot detection. Polite 300–500ms delays between pages keep requests under the radar threshold.",
+      "Category paths nest up to 4 levels deep (e.g. Electronics › Computers › Laptops › Gaming) — available per product without extra fetches.",
+      "ratingScore and review count are separate fields — useful for distinguishing high-volume mediocre sellers from low-volume excellent ones.",
+    ]
+  },
+  "shophive.com": {
+    color: "#1a73e8", tech: "Magento 2", per_page: 24,
+    facts: [
+      "Shophive runs Magento 2. The catalogsearch/result endpoint uses standard Magento URL patterns with ?p= pagination.",
+      "24 products per search results page. Magento's toolbar block exposes total count in a data-mage-init attribute on the first page.",
+      "Shophive is strong in tech categories: laptops, phones, tablets — SKU depth here often exceeds Daraz for premium brands.",
+      "Magento product cards carry structured price markup with schema.org microdata — clean extraction of current vs regular price.",
+      "Product URLs are SEO-friendly and include the full category path, useful for category classification without extra fetches.",
+    ]
+  },
+  "carrefour.pk": {
+    color: "#c8102e", tech: "MAF Elastic Search API", per_page: 40,
+    facts: [
+      "Carrefour Pakistan is powered by the MAF (Majid Al Futtaim) Elastic Search backend, returning 40 results per call with rich JSON.",
+      "Price data is nested — price.value and originalPrice.value — with currency embedded. Null originalPrice means no active promotion.",
+      "Carrefour's brand data is structured as an object with name, slug and brandId — much cleaner than free-text brand fields on other sites.",
+      "Category taxonomy uses MAF's global category IDs, allowing cross-country category comparison within the Carrefour network.",
+      "Carrefour leads in grocery, fresh food and household FMCG — categories largely absent from Daraz and Shophive.",
+    ]
+  },
+  "metro.pk": {
+    color: "#003087", tech: "Magento 2", per_page: 30,
+    facts: [
+      "Metro Online uses Magento 2 with ~30 products per search page and a wholesale pricing structure not found on consumer-facing sites.",
+      "Metro uniquely includes unit weight, pack size and per-unit pricing — critical for FMCG cost-of-goods analysis.",
+      "Bulk-pack listings at Metro often have 3–5× lower per-unit cost than identical SKUs on Daraz — a structural arbitrage opportunity.",
+      "Metro's seller model differs: most listings are Metro's own inventory, not third-party sellers. Reliability score is inherently higher.",
+      "B2B categories like catering supplies, hygiene bulk packs and food service SKUs exist almost exclusively on Metro in Pakistan.",
+    ]
+  },
+  "alfatah.pk": {
+    color: "#00843d", tech: "Shopify JSON API", per_page: 20,
+    facts: [
+      "Alfatah runs on Shopify, which exposes a clean /search/suggest.json endpoint returning 20 products per page with full vendor data.",
+      "Shopify's variant system means one product can have multiple price points (size, color, bundle) — we extract the lowest variant price.",
+      "Alfatah's fresh grocery, bakery and dairy SKUs are almost entirely absent from all other scraped platforms — blue-ocean territory.",
+      "The Shopify storefront API is public by default — no authentication required for product search and listing data.",
+      "Alfatah product handles (URL slugs) are stable and unique — ideal for tracking price changes on specific items over time.",
+    ]
+  },
+};
+
+// Rotating fact index per site
+const _factIdx = {};
+
+function buildFactsPanel(activeSite) {
+  const el = document.getElementById('ld-facts-panel');
+  if (!el) return;
+
+  const siteDone  = new Set((store.scan?.stats?.sites_done) || []);
+  const scanStats = store.scan?.stats || {};
+
+  // Rotate the shown fact for the active site every ~4s
+  const now = Math.floor(Date.now() / 4000);
+
+  el.innerHTML = Object.entries(SITE_FACTS).map(([site, meta]) => {
+    const isDone   = siteDone.has(site);
+    const isActive = site === activeSite;
+
+    // Pick which fact to show — rotate for active site
+    if (isActive) {
+      if (!_factIdx[site]) _factIdx[site] = 0;
+      const rotKey = Math.floor(Date.now() / 5000);
+      _factIdx[site] = rotKey % meta.facts.length;
+    }
+    const factIdx = _factIdx[site] || 0;
+    const fact = meta.facts[Math.min(factIdx, meta.facts.length - 1)];
+
+    const statusLabel = isDone
+      ? `<span class="fact-chip active" style="border-color:var(--grn);color:var(--grn)">✓ Complete</span>`
+      : isActive
+        ? `<span class="fact-chip active" style="border-color:var(--ylw);color:var(--ylw);animation:blink 1s infinite">⟳ Scanning…</span>`
+        : `<span class="fact-chip">Queued</span>`;
+
+    const opacity = (isDone || isActive) ? '1' : '0.45';
+
+    return `<div class="fact-card" style="border-left:3px solid ${meta.color};opacity:${opacity};transition:opacity .4s">
+      <div class="fact-site" style="color:${meta.color};display:flex;align-items:center;gap:6px">
+        ${isActive ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${meta.color};animation:blink .8s infinite"></span>` : ''}
+        ${site}
+      </div>
+      <div class="fact-body">${escHtml(fact)}</div>
+      <div class="fact-meta">
+        <span class="fact-chip ${isActive ? 'active' : ''}">${meta.tech}</span>
+        <span class="fact-chip">${meta.per_page} products/page</span>
+        ${statusLabel}
+        ${isActive && meta.facts.length > 1 ? `<span class="fact-chip" style="color:var(--t3)">${(factIdx % meta.facts.length) + 1}/${meta.facts.length} facts</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+  // Patch removed — buildFactsPanel is now called directly inside updateLoadingScreen above
+  // This eliminates the infinite recursion caused by the hoisted function re-declaration
+
+// ═══════════════════════════════════════════════════════════════════
+// MARKET GAPS — ENHANCED
+// ═══════════════════════════════════════════════════════════════════
+async function buildGaps() {
+  if (!store.allFlat.length) return;
+  const data = await fetch('/api/market-gaps').then(r=>r.json()).catch(()=>({gaps:[],category_sites:{},sites:[]}));
+  const {gaps=[],category_sites={},sites=[]} = data;
+
+  if (!gaps.length) {
+    document.getElementById('gap-grid').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-ico">🔭</div><div class="empty-t">No gaps identified</div><div class="empty-s">Scrape queries across multiple platforms to reveal gaps</div></div>';
+    document.getElementById('ch-gaps')?.parentElement?.parentElement && (document.getElementById('ch-gaps').parentElement.parentElement.style.display='none');
+    return;
+  }
+
+  // ── Heatmap: category × site ──
+  const heatCats = Object.keys(category_sites).slice(0, 12);
+  if (heatCats.length && sites.length) {
+    const heatHtml = `
+      <div style="font-family:var(--mono);font-size:.62rem;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Category Performance by Platform</div>
+      <div class="gap-heatmap">
+        <table>
+          <thead><tr>
+            <th>Category</th>
+            ${sites.map(s=>`<th style="color:${SITE_COLORS[s]||'#888'}">${s}</th>`).join('')}
+            <th>Avg Rating</th><th>Insight</th>
+          </tr></thead>
+          <tbody>${heatCats.map(cat => {
+            const rowData = sites.map(site => {
+              const d = (category_sites[cat]||{})[site];
+              if (!d) return '<td><span class="heat-cell heat-0">—</span></td>';
+              const intensity = d.count >= 20 ? 3 : d.count >= 10 ? 2 : 1;
+              return `<td><span class="heat-cell heat-${intensity}" title="${d.count} products · avg PKR ${d.avg_price?.toLocaleString()}">
+                ${d.count}p · ${d.avg_price ? (d.avg_price/1000).toFixed(1)+'K' : '—'}
+              </span></td>`;
+            }).join('');
+            const allRatings = sites.map(s=>(category_sites[cat]||{})[s]?.avg_rating||0).filter(r=>r>0);
+            const avgRat = allRatings.length ? (allRatings.reduce((a,b)=>a+b,0)/allRatings.length).toFixed(1) : '—';
+            const sitesWithData = sites.filter(s=>(category_sites[cat]||{})[s]);
+            const insight = sitesWithData.length < sites.length
+              ? `Only on ${sitesWithData.length}/${sites.length} platforms`
+              : 'Present on all platforms';
+            return `<tr><td style="font-weight:500;font-size:.78rem;white-space:nowrap">${cat}</td>${rowData}<td style="font-family:var(--mono);text-align:center">${avgRat}</td><td class="gap-insight">${insight}</td></tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    document.querySelector('#tab-gaps .ch-grid').insertAdjacentHTML('afterend', heatHtml);
+  }
+
+  // ── Gap cards ──
+  document.getElementById('gap-grid').innerHTML = gaps.slice(0,15).map(g => {
+    const siteList = Object.entries(g.site_prices||{})
+      .sort((a,b)=>a[1]-b[1])
+      .map(([s,p],i)=>`<span style="font-family:var(--mono);font-size:.65rem;padding:2px 7px;border:1px solid ${i===0?'var(--grn)':'var(--b2)'};color:${i===0?'var(--grn)':'var(--t3)'};">${s}: PKR ${p?.toLocaleString()}</span>`)
+      .join('');
+    return `<div class="gap-card opp-${g.opportunity}">
+      <div class="gap-cat">${g.category}</div>
+      <div class="gap-range">${g.price_range}</div>
+      <div class="gap-stats">
+        <div class="gap-stat">Products <span>${g.count}</span></div>
+        <div class="gap-stat">Platforms <span>${g.sites_covering}/${g.total_sites}</span></div>
+        <div class="gap-stat">Avg Rating <span>${g.avg_rating||'—'}</span></div>
+        <div class="gap-stat">Gap Score <span>${g.gap_score}</span></div>
+      </div>
+      ${siteList ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">${siteList}</div>` : ''}
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--t3);margin-top:6px;line-height:1.5">${g.insight||''}</div>
+      <span class="opp-badge opp-${g.opportunity}">${g.opportunity} OPPORTUNITY</span>
+    </div>`;
+  }).join('');
+
+  // ── Gap score bar chart ──
+  const top8 = gaps.slice(0,8);
+  dc('ch-gaps');
+  store.charts['ch-gaps'] = new Chart(document.getElementById('ch-gaps'), {
+    type:'bar',
+    data:{
+      labels: top8.map(g=>`${g.category.slice(0,16)} · ${g.price_range.slice(0,10)}`),
+      datasets:[{label:'Gap Score',data:top8.map(g=>g.gap_score),
+        backgroundColor: top8.map(g=>g.opportunity==='HIGH'?'rgba(34,197,94,.25)':g.opportunity==='MEDIUM'?'rgba(234,179,8,.2)':'rgba(71,85,105,.2)'),
+        borderColor: top8.map(g=>g.opportunity==='HIGH'?'#22c55e':g.opportunity==='MEDIUM'?'#eab308':'#475569'),
+        borderWidth:1}]
+    },
+    options:{...NO_LEG,indexAxis:'y',responsive:true,maintainAspectRatio:false}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CUSTOM SITE BUILDER
+// ═══════════════════════════════════════════════════════════════════
+let _csProbeData = null;
+let _csCode      = '';
+
+async function probeCustomSite() {
+  const url   = document.getElementById('cs-url').value.trim();
+  const query = document.getElementById('cs-testq').value.trim() || 'laptop';
+  if (!url) { alert('Enter a website URL.'); return; }
+  const el = document.getElementById('cs-probe-result');
+  el.style.display='block'; el.textContent='⏳ Probing site structure…';
+  setSt('Probing custom site…','busy');
+  try {
+    const res  = await fetch('/api/custom-site/probe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,test_query:query})});
+    const data = await res.json();
+    _csProbeData = data;
+    el.innerHTML = `<b>Domain:</b> ${data.domain}<br/>` +
+      `<b>Platform:</b> ${(data.tech_hints||['Unknown']).join(', ')}<br/>` +
+      `<b>Search URL:</b> ${data.search_url||'Not detected'}<br/>` +
+      `<b>Page title:</b> ${data.pages?.home_title||'—'}<br/>` +
+      `${data.pages?.search_sample ? `<b>Product selector:</b> ${data.pages.search_sample.selector} (${data.pages.search_sample.count} found)` : ''}` +
+      `${data.pages?.json_key ? `<br/><b>JSON key found:</b> "${data.pages.json_key}" (${data.pages.json_count} items)` : ''}`;
+    document.getElementById('cs-build-btn').disabled = false;
+    setSt('Site probed — ready to build scraper','ok');
+  } catch(e) {
+    el.textContent = `Error: ${e.message}`; setSt('Probe failed','err');
+  }
+}
+
+async function buildCustomScraper() {
+  if (!_csProbeData) { alert('Probe the site first.'); return; }
+  const apiKey = store.apiKey;
+  if (!apiKey) { alert('API key required. Set it in Settings.'); return; }
+  const btn = document.getElementById('cs-build-btn');
+  btn.disabled=true; btn.textContent='⚡ Generating…';
+  const wrap = document.getElementById('cs-code-wrap');
+  const preview = document.getElementById('cs-code-preview');
+  wrap.style.display='block'; preview.textContent='';
+  setSt('AI generating scraper…','busy');
+  _csCode = '';
+  try {
+    const res = await fetch('/api/custom-site/build',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({probe:_csProbeData,api_key:apiKey})});
+    if (!res.ok) { const e=await res.json(); preview.textContent='Error: '+(e.error||res.status); return; }
+    const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){
+      const{done,value}=await reader.read(); if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n'); buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data:')) continue;
+        const raw=line.slice(5).trim(); if(raw==='[DONE]') continue;
+        try{
+          const e=JSON.parse(raw);
+          if(e.type==='content_block_delta'&&e.delta?.type==='text_delta'){
+            _csCode+=e.delta.text; preview.textContent=_csCode;
+            preview.scrollTop=preview.scrollHeight;
+          }
+        }catch{}
+      }
+    }
+    document.getElementById('cs-reg-btn').disabled=false;
+    setSt('Scraper generated — review and register','ok');
+  } catch(e) { preview.textContent='Error: '+e.message; setSt('Build failed','err'); }
+  finally { btn.disabled=false; btn.textContent='⚡ Generate Scraper with AI'; }
+}
+
+async function registerCustomScraper() {
+  if (!_csCode || !_csProbeData) { alert('Generate scraper first.'); return; }
+  try {
+    const res  = await fetch('/api/custom-site/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:_csProbeData.domain,code:_csCode})});
+    const data = await res.json();
+    if (data.error) { alert('Registration error: '+data.error); return; }
+    document.getElementById('cs-test-btn').disabled=false;
+    setSt(`✓ ${data.domain} registered successfully`,'ok');
+    loadCustomSitesList();
+    alert(`✓ ${data.domain} registered as a data source. It will be included in all future scans.`);
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+async function testCustomScraper() {
+  if (!_csProbeData) return;
+  const query = document.getElementById('cs-testq').value.trim() || 'laptop';
+  const el    = document.getElementById('cs-test-result');
+  el.style.display='block'; el.textContent='⏳ Running test scrape (1 page)…';
+  setSt('Testing custom scraper…','busy');
+  try {
+    const res  = await fetch('/api/scrape',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries:[query],pages:1,delay:1.5})});
+    const data = await res.json();
+    el.textContent = data.status==='started' ? '✓ Scan started — check Overview tab for results.' : 'Error: '+(data.error||'unknown');
+    setSt('Test scan started','ok');
+  } catch(e) { el.textContent='Error: '+e.message; }
+}
+
+async function loadCustomSitesList() {
+  const data = await fetch('/api/custom-sites').then(r=>r.json()).catch(()=>({sites:[]}));
+  const el   = document.getElementById('custom-sites-list');
+  if (!data.sites?.length) {
+    el.innerHTML='<div style="font-family:var(--mono);font-size:.72rem;color:var(--t3)">No custom sources registered yet.</div>';
+    return;
+  }
+  el.innerHTML = data.sites.map(s=>`
+    <div class="cs-item">
+      <div class="cs-item-name">${s.domain}</div>
+      <span class="cs-item-status">● ${s.status}</span>
+    </div>`).join('');
+}
+
+// Load custom sites on tab open
+// Important: wrap the existing showTab by assignment, not another function declaration.
+// A second function declaration with the same name gets hoisted and can recurse into itself.
+const _baseShowTab = showTab;
+showTab = function(id, el) {
+  _baseShowTab(id, el);
+  if (id==='custom') loadCustomSitesList();
+};
+
+</script>
+</body>
+</html>
